@@ -104,6 +104,11 @@ services:
       args:
         DOCKER_BUILDKIT: 1
     restart: always
+    env_file:
+      - ./apps/live/.env
+    depends_on:
+      - api
+      - plane-redis
 
   plane-db:
     container_name: plane-db
@@ -154,6 +159,8 @@ services:
   # Comment this if you already have a reverse proxy running
   proxy:
     container_name: proxy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     build:
       context: ./apps/proxy
       dockerfile: Dockerfile.ce
@@ -164,6 +171,10 @@ services:
     environment:
       FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT:-5242880}
       BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-uploads}
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      CERT_EMAIL: ${CERT_EMAIL:-}
+      CERT_ACME_DNS: ${CERT_ACME_DNS:-}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-0.0.0.0/0}
     depends_on:
       - web
       - api

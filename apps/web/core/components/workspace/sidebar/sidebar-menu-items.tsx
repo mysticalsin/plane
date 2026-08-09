@@ -99,7 +99,7 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
       <div className="flex flex-col gap-0.5">
         {filteredStaticNavigationItems.map((item, _index) => (
           // oxlint-disable-next-line react/no-array-index-key
-          <SidebarItemBase key={`static_${_index}`} item={item} />
+          <SidebarItemBase key={`static_${_index}`} item={item} additionalStaticItems={["chat", "polo"]} />
         ))}
       </div>
       <Disclosure as="div" className="flex flex-col" defaultOpen={!!isWorkspaceMenuOpen}>

@@ -10,6 +10,8 @@ import { useParams } from "next/navigation";
 // plane imports
 import { DraftIcon, HomeIcon, PiChatLogo, YourWorkIcon, DashboardIcon } from "@plane/propel/icons";
 import { EUserWorkspaceRoles } from "@plane/types";
+// icons not yet available in @plane/propel/icons for these Athena surfaces
+import { Building2, MessageCircle } from "lucide-react";
 // hooks
 import { useUserPermissions, useUser } from "@/hooks/store/user";
 // local imports
@@ -29,6 +31,20 @@ export const SidebarUserMenu = observer(function SidebarUserMenu() {
       href: `/${workspaceSlug.toString()}/`,
       access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER, EUserWorkspaceRoles.GUEST],
       Icon: HomeIcon,
+    },
+    {
+      key: "chat",
+      labelTranslationKey: "sidebar.chat",
+      href: `/${workspaceSlug.toString()}/chat/`,
+      access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER, EUserWorkspaceRoles.GUEST],
+      Icon: MessageCircle,
+    },
+    {
+      key: "polo",
+      labelTranslationKey: "sidebar.polo",
+      href: `/${workspaceSlug.toString()}/polo/`,
+      access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
+      Icon: Building2,
     },
     {
       key: "dashboards",

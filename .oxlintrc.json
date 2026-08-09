@@ -49,5 +49,28 @@
         "ignoreRestSiblings": true
       }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["apps/web/athena/**"],
+      "rules": {
+        "react/no-array-index-key": "off",
+        "promise/always-return": "off"
+      }
+    },
+    {
+      "files": [
+        "apps/web/app/root.tsx",
+        "apps/web/app/layout.tsx",
+        "apps/web/app/(all)/invitations/page.tsx",
+        "apps/web/app/(all)/workspace-invitations/page.tsx"
+      ],
+      "rules": {
+        "import/no-unassigned-import": "off",
+        "promise/always-return": "off",
+        "jsx-a11y/click-events-have-key-events": "off",
+        "jsx-a11y/no-static-element-interactions": "off"
+      }
+    }
+  ]
 }

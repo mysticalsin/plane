@@ -1,0 +1,116 @@
+/**
+ * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ *
+ * Athena BFF chat-settings endpoints, prefix /api/v1/chat/settings (see
+ * apps/bff/src/routes/chatSettings.ts). Reuses athenaFetch from athena/api/http.ts — the one
+ * place athena/** touches the network — rather than a second fetch wrapper for this surface.
+ */
+
+import { athenaFetch } from "../../../api/http";
+import type {
+  AgentListResponse,
+  AgentRegistration,
+  ChannelListResponse,
+  ChannelSettings,
+  ChatModelProvider,
+  CreateAgentInput,
+  CreateChannelInput,
+  IdentitySettings,
+  NotificationPref,
+  NotificationPrefListResponse,
+  ProviderKeyStatus,
+  ProviderListResponse,
+  RelaySettings,
+  TestProviderResult,
+  UpdateAgentInput,
+  UpdateChannelInput,
+  UpdateNotificationPrefInput,
+} from "../types";
+
+export function getRelaySettings(): Promise<RelaySettings> {
+  return athenaFetch<RelaySettings>("/chat/settings/relay");
+}
+
+export function getIdentitySettings(): Promise<IdentitySettings> {
+  return athenaFetch<IdentitySettings>("/chat/settings/identity");
+}
+
+export function updateIdentitySettings(displayName: string): Promise<IdentitySettings> {
+  return athenaFetch<IdentitySettings>("/chat/settings/identity", {
+    method: "PATCH",
+    body: JSON.stringify({ displayName }),
+  });
+}
+
+export function listChannelSettings(): Promise<ChannelListResponse> {
+  return athenaFetch<ChannelListResponse>("/chat/settings/channels");
+}
+
+export function createChannelSetting(input: CreateChannelInput): Promise<ChannelSettings> {
+  return athenaFetch<ChannelSettings>("/chat/settings/channels", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateChannelSetting(id: string, input: UpdateChannelInput): Promise<ChannelSettings> {
+  return athenaFetch<ChannelSettings>(`/chat/settings/channels/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function listAgentSettings(): Promise<AgentListResponse> {
+  return athenaFetch<AgentListResponse>("/chat/settings/agents");
+}
+
+export function createAgentSetting(input: CreateAgentInput): Promise<AgentRegistration> {
+  return athenaFetch<AgentRegistration>("/chat/settings/agents", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateAgentSetting(id: string, input: UpdateAgentInput): Promise<AgentRegistration> {
+  return athenaFetch<AgentRegistration>(`/chat/settings/agents/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function listProviderSettings(): Promise<ProviderListResponse> {
+  return athenaFetch<ProviderListResponse>("/chat/settings/providers");
+}
+
+export function setProviderKey(provider: ChatModelProvider, apiKey: string): Promise<ProviderKeyStatus> {
+  return athenaFetch<ProviderKeyStatus>(`/chat/settings/providers/${provider}`, {
+    method: "PUT",
+    body: JSON.stringify({ apiKey }),
+  });
+}
+
+/** 204 No Content on success — athenaFetch resolves to undefined for an empty body, so this
+ * is typed void rather than cast to a response shape that was never sent. */
+export function deleteProviderKey(provider: ChatModelProvider): Promise<void> {
+  return athenaFetch<void>(`/chat/settings/providers/${provider}`, { method: "DELETE" });
+}
+
+export function testProviderKey(provider: ChatModelProvider): Promise<TestProviderResult> {
+  return athenaFetch<TestProviderResult>(`/chat/settings/providers/${provider}/test`, { method: "POST" });
+}
+
+export function listNotificationPrefs(): Promise<NotificationPrefListResponse> {
+  return athenaFetch<NotificationPrefListResponse>("/chat/settings/notifications");
+}
+
+export function updateNotificationPref(
+  channelId: string,
+  input: UpdateNotificationPrefInput
+): Promise<NotificationPref> {
+  return athenaFetch<NotificationPref>(`/chat/settings/notifications/${encodeURIComponent(channelId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
