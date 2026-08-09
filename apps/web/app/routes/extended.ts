@@ -55,6 +55,10 @@ export const extendedRoutes: RouteConfigEntry[] = [
         // tabs. Same "(projects)" shell as chat/Polo, so the workspace's left rail stays visible.
         route(":workspaceSlug/files", "../athena/routes/files/page.tsx"),
 
+        // /:workspaceSlug/knowledge — the Graphify-built code knowledge graph: search a node,
+        // see what it depends on and what depends on it, trace a path between any two.
+        route(":workspaceSlug/knowledge", "../athena/routes/knowledge/page.tsx"),
+
         // /:workspaceSlug/projects/:projectId/chat — the project's own channel, nested as a
         // sibling of issues/cycles/modules/pages inside the existing project detail layout
         // so the project's left nav (including this build's "Chat" entry) surrounds it.
