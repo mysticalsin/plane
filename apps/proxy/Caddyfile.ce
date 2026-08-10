@@ -22,11 +22,16 @@
 
 	reverse_proxy /live/* live:3000
 
-	# Athena BFF (chat, agents, Polo). Served same-origin so the browser needs no CORS and the
-	# session cookie is sent normally. strip_prefix because the BFF serves /api/v1, not /athena-api/api/v1.
+	# Athena BFF (chat, agents, Polo, knowledge graph). Served same-origin so the browser needs no
+	# CORS and the session cookie is sent normally. strip_prefix because the BFF serves /api/v1, not
+	# /athena-api/api/v1.
+	#
+	# By container name, not host.docker.internal:13101: the BFF is a container on this same network
+	# now (infra/hosting/compose.yml) and publishes no host port. Pointing at the host gateway was
+	# how this route 502'd the moment the BFF stopped being a loose process on the host.
 	@athena path /athena-api/*
 	uri @athena strip_prefix /athena-api
-	reverse_proxy @athena host.docker.internal:13101
+	reverse_proxy @athena athena-bff:13101
 
 	reverse_proxy /api/* api:8000
 
