@@ -126,3 +126,60 @@ export interface UpdateNotificationPrefInput {
  * ChatFetchStatus, redeclared here rather than imported so this panel's data layer has no
  * dependency edge back into the chat surface it extends. */
 export type SettingsFetchStatus = "loading" | "error" | "ready";
+
+/** One model the gateway can route to — see apps/bff/src/services/modelCatalog.ts. */
+export interface CatalogModel {
+  readonly id: string;
+  readonly label: string;
+  /** The agent needs tools; a model without them is shown as unavailable rather than hidden. */
+  readonly supportsTools: boolean;
+  readonly contextLength: number | null;
+  /** A gateway combo that routes automatically, rather than one concrete vendor model. */
+  readonly isAuto: boolean;
+  readonly ownedBy: string | null;
+}
+
+export interface ModelCatalogResponse {
+  /** Null means automatic routing — a real choice, and the default. */
+  readonly selectedModelId: string | null;
+  /** True when the gateway is unreachable; the UI says so instead of showing an empty list. */
+  readonly catalogUnavailable: boolean;
+  readonly models: readonly CatalogModel[];
+}
+
+export interface McpServer {
+  readonly id: string;
+  readonly name: string;
+  readonly transport: "http";
+  readonly url: string;
+  readonly enabled: boolean;
+  /** Last four characters of the stored token, or null when the server needs no auth. */
+  readonly authLastFour: string | null;
+  readonly createdAt: string;
+}
+
+export interface McpServerListResponse {
+  readonly servers: readonly McpServer[];
+}
+
+export interface CreateMcpServerInput {
+  readonly name: string;
+  readonly url: string;
+  readonly enabled?: boolean;
+  readonly authToken?: string;
+}
+
+export interface UpdateMcpServerInput {
+  readonly name?: string;
+  readonly url?: string;
+  readonly enabled?: boolean;
+  /** A string replaces the token, null clears it, omitted leaves it untouched. */
+  readonly authToken?: string | null;
+}
+
+/** Result of the Test button — a failed probe is a successful test run with a reason. */
+export interface McpProbeResult {
+  readonly ok: boolean;
+  readonly tools: readonly string[];
+  readonly error?: string;
+}

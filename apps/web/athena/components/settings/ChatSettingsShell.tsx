@@ -15,17 +15,23 @@ import { FOCUS_RING } from "../../utils/focusRing";
 import { AgentsPanel } from "./AgentsPanel";
 import { ChannelsPanel } from "./ChannelsPanel";
 import { IdentityPanel } from "./IdentityPanel";
+import { McpPanel } from "./McpPanel";
+import { ModelPanel } from "./ModelPanel";
 import { NotificationsPanel } from "./NotificationsPanel";
 import { ProvidersPanel } from "./ProvidersPanel";
 import { RelayPanel } from "./RelayPanel";
 
-type SettingsSectionId = "relay" | "identity" | "channels" | "agents" | "providers" | "notifications";
+type SettingsSectionId = "relay" | "identity" | "channels" | "agents" | "model" | "mcp" | "providers" | "notifications";
 
 const SECTIONS: readonly { id: SettingsSectionId; label: string }[] = [
   { id: "relay", label: "Relay" },
   { id: "identity", label: "Your identity" },
   { id: "channels", label: "Channels" },
   { id: "agents", label: "Agents" },
+  // Model sits directly under Agents: picking who answers and what answers is one decision,
+  // and both are upstream of the BYO-key panel most workspaces never need to open.
+  { id: "model", label: "Model" },
+  { id: "mcp", label: "MCP servers" },
   { id: "providers", label: "Model providers" },
   { id: "notifications", label: "Notifications" },
 ];
@@ -40,6 +46,10 @@ function renderSection(id: SettingsSectionId) {
       return <ChannelsPanel />;
     case "agents":
       return <AgentsPanel />;
+    case "model":
+      return <ModelPanel />;
+    case "mcp":
+      return <McpPanel />;
     case "providers":
       return <ProvidersPanel />;
     case "notifications":

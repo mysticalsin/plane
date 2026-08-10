@@ -16,6 +16,7 @@ import type {
   ChannelSettings,
   ChatModelProvider,
   CreateAgentInput,
+  CreateMcpServerInput,
   CreateChannelInput,
   IdentitySettings,
   NotificationPref,
@@ -26,7 +27,12 @@ import type {
   TestProviderResult,
   UpdateAgentInput,
   UpdateChannelInput,
+  UpdateMcpServerInput,
   UpdateNotificationPrefInput,
+  McpProbeResult,
+  McpServer,
+  McpServerListResponse,
+  ModelCatalogResponse,
 } from "../types";
 
 export function getRelaySettings(): Promise<RelaySettings> {
@@ -113,4 +119,36 @@ export function updateNotificationPref(
     method: "PATCH",
     body: JSON.stringify(input),
   });
+}
+
+export function getModelCatalog(): Promise<ModelCatalogResponse> {
+  return athenaFetch<ModelCatalogResponse>("/chat/settings/models");
+}
+
+/** `modelId: null` selects automatic routing. */
+export function setSelectedModel(modelId: string | null): Promise<{ selectedModelId: string | null }> {
+  return athenaFetch<{ selectedModelId: string | null }>("/chat/settings/models", {
+    method: "PUT",
+    body: JSON.stringify({ modelId }),
+  });
+}
+
+export function listMcpServers(): Promise<McpServerListResponse> {
+  return athenaFetch<McpServerListResponse>("/chat/settings/mcp");
+}
+
+export function createMcpServer(input: CreateMcpServerInput): Promise<McpServer> {
+  return athenaFetch<McpServer>("/chat/settings/mcp", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateMcpServer(id: string, input: UpdateMcpServerInput): Promise<McpServer> {
+  return athenaFetch<McpServer>(`/chat/settings/mcp/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+}
+
+export function deleteMcpServer(id: string): Promise<void> {
+  return athenaFetch<void>(`/chat/settings/mcp/${id}`, { method: "DELETE" });
+}
+
+export function testMcpServer(id: string): Promise<McpProbeResult> {
+  return athenaFetch<McpProbeResult>(`/chat/settings/mcp/${id}/test`, { method: "POST" });
 }

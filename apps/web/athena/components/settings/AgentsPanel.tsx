@@ -14,6 +14,7 @@ import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { cn } from "@plane/utils";
 import { ChatEmptyState } from "../ChatEmptyState";
 import { ChatErrorState } from "../ChatErrorState";
+import { MentionableAgents } from "./MentionableAgents";
 import { useAgentSettings } from "./hooks/useAgentSettings";
 import { AgentFormModal } from "./shared/AgentFormModal";
 import { formatSettingsTimestamp } from "./shared/formatDate";
@@ -84,19 +85,20 @@ export function AgentsPanel() {
   return (
     <SettingsSection
       title="Agents"
-      description="The roster of AI agents mentionable in chat. Registering one here makes it @mentionable."
+      description="AI agents that answer when mentioned in chat. Registering one here creates its identity and makes it @mentionable."
       action={
         <Button variant="primary" size="sm" onClick={() => setModalOpen(true)}>
           Register agent
         </Button>
       }
     >
+      <MentionableAgents />
       {status === "loading" && <AgentsSkeleton />}
       {status === "error" && <ChatErrorState message={error ?? "Could not load the agent roster."} onRetry={retry} />}
       {status === "ready" && agents.length === 0 && (
         <ChatEmptyState
-          title="No agents registered yet"
-          description="Register an AI agent to make it @mentionable in chat."
+          title="No agents registered here"
+          description="Agents registered in Athena appear here. An agent run by the standalone runtime is mentionable without a row here — see the list above."
         />
       )}
       {status === "ready" && agents.length > 0 && (
