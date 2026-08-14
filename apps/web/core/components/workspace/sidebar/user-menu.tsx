@@ -11,7 +11,7 @@ import { useParams } from "next/navigation";
 import { DraftIcon, HomeIcon, PiChatLogo, YourWorkIcon, DashboardIcon } from "@plane/propel/icons";
 import { EUserWorkspaceRoles } from "@plane/types";
 // icons not yet available in @plane/propel/icons for these Athena surfaces
-import { Building2, MessageCircle, Network } from "lucide-react";
+import { Building2, FileSignature, MessageCircle, Network } from "lucide-react";
 // hooks
 import { useUserPermissions, useUser } from "@/hooks/store/user";
 // local imports
@@ -45,6 +45,13 @@ export const SidebarUserMenu = observer(function SidebarUserMenu() {
       href: `/${workspaceSlug.toString()}/polo/`,
       access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
       Icon: Building2,
+    },
+    {
+      key: "bids",
+      labelTranslationKey: "sidebar.bids",
+      href: `/${workspaceSlug.toString()}/bids/`,
+      access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
+      Icon: FileSignature,
     },
     {
       key: "knowledge",
