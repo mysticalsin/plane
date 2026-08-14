@@ -19,7 +19,12 @@ export interface UseProviderSettingsResult {
   readonly retry: () => void;
   readonly pending: ReadonlySet<ChatModelProvider>;
   readonly testResults: ReadonlyMap<ChatModelProvider, TestProviderResult>;
-  readonly saveKey: (provider: ChatModelProvider, apiKey: string) => Promise<{ ok: boolean; error?: string }>;
+  /** `custom` applies only to the custom provider; the named vendors' endpoints are fixed. */
+  readonly saveKey: (
+    provider: ChatModelProvider,
+    apiKey: string,
+    custom?: { baseUrl: string; model: string }
+  ) => Promise<{ ok: boolean; error?: string }>;
   readonly removeKey: (provider: ChatModelProvider) => Promise<{ ok: boolean; error?: string }>;
   readonly testConnection: (provider: ChatModelProvider) => Promise<void>;
 }
@@ -69,23 +74,26 @@ export function useProviderSettings(): UseProviderSettingsResult {
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
-  const saveKey = useCallback(async (provider: ChatModelProvider, apiKey: string) => {
-    setPending((prev) => withPending(prev, provider, true));
-    try {
-      const updated = await setProviderKey(provider, apiKey);
-      setProviders((prev) => replaceProvider(prev, updated));
-      setTestResults((prev) => {
-        const next = new Map(prev);
-        next.delete(provider);
-        return next;
-      });
-      return { ok: true };
-    } catch (err) {
-      return { ok: false, error: err instanceof ChatApiError ? err.message : "Could not save this key." };
-    } finally {
-      setPending((prev) => withPending(prev, provider, false));
-    }
-  }, []);
+  const saveKey = useCallback(
+    async (provider: ChatModelProvider, apiKey: string, custom?: { baseUrl: string; model: string }) => {
+      setPending((prev) => withPending(prev, provider, true));
+      try {
+        const updated = await setProviderKey(provider, apiKey, custom);
+        setProviders((prev) => replaceProvider(prev, updated));
+        setTestResults((prev) => {
+          const next = new Map(prev);
+          next.delete(provider);
+          return next;
+        });
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, error: err instanceof ChatApiError ? err.message : "Could not save this key." };
+      } finally {
+        setPending((prev) => withPending(prev, provider, false));
+      }
+    },
+    []
+  );
 
   const removeKey = useCallback(async (provider: ChatModelProvider) => {
     setPending((prev) => withPending(prev, provider, true));

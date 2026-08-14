@@ -23,6 +23,7 @@ import type {
   NotificationPrefListResponse,
   ProviderKeyStatus,
   ProviderListResponse,
+  ProviderPolicy,
   RelaySettings,
   TestProviderResult,
   UpdateAgentInput,
@@ -90,10 +91,16 @@ export function listProviderSettings(): Promise<ProviderListResponse> {
   return athenaFetch<ProviderListResponse>("/chat/settings/providers");
 }
 
-export function setProviderKey(provider: ChatModelProvider, apiKey: string): Promise<ProviderKeyStatus> {
+/** `baseUrl` and `model` are required for the custom provider; `baseUrl` is refused for the
+ * named vendors, whose endpoints are fixed. */
+export function setProviderKey(
+  provider: ChatModelProvider,
+  apiKey: string,
+  custom?: { baseUrl: string; model: string }
+): Promise<ProviderKeyStatus> {
   return athenaFetch<ProviderKeyStatus>(`/chat/settings/providers/${provider}`, {
     method: "PUT",
-    body: JSON.stringify({ apiKey }),
+    body: JSON.stringify(custom ? { apiKey, ...custom } : { apiKey }),
   });
 }
 
@@ -151,4 +158,24 @@ export function deleteMcpServer(id: string): Promise<void> {
 
 export function testMcpServer(id: string): Promise<McpProbeResult> {
   return athenaFetch<McpProbeResult>(`/chat/settings/mcp/${id}/test`, { method: "POST" });
+}
+
+export function getProviderPolicy(): Promise<ProviderPolicy> {
+  return athenaFetch<ProviderPolicy>("/chat/settings/providers/policy");
+}
+
+export function setProviderPolicy(policy: "admins_only" | "members"): Promise<{ policy: string }> {
+  return athenaFetch<{ policy: string }>("/chat/settings/providers/policy", {
+    method: "PUT",
+    body: JSON.stringify({ policy }),
+  });
+}
+
+export function setActiveProvider(
+  provider: ChatModelProvider | null
+): Promise<{ activeProvider: ChatModelProvider | null }> {
+  return athenaFetch<{ activeProvider: ChatModelProvider | null }>("/chat/settings/providers/active", {
+    method: "PUT",
+    body: JSON.stringify({ provider }),
+  });
 }

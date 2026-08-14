@@ -15,17 +15,12 @@ import { cn } from "@plane/utils";
 import { ChatEmptyState } from "../ChatEmptyState";
 import { ChatErrorState } from "../ChatErrorState";
 import { MentionableAgents } from "./MentionableAgents";
+import { PROVIDER_LABELS } from "./providerLabels";
 import { useAgentSettings } from "./hooks/useAgentSettings";
 import { AgentFormModal } from "./shared/AgentFormModal";
 import { formatSettingsTimestamp } from "./shared/formatDate";
 import { SettingsSection } from "./shared/SettingsSection";
-import type { AgentRegistration, ChatModelProvider } from "./types";
-
-const PROVIDER_LABELS: Record<ChatModelProvider, string> = {
-  deepseek: "DeepSeek",
-  moonshot: "Moonshot",
-  anthropic: "Anthropic",
-};
+import type { AgentRegistration } from "./types";
 
 function AgentsSkeleton() {
   return (

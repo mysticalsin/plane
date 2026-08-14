@@ -63,7 +63,7 @@ export interface UpdateChannelInput {
 
 /** Matches apps/bff/src/routes/chatSettings/shared.ts's chatProviderSchema exactly — the
  * three providers the BYOK surface and the agent roster both validate against. */
-export type ChatModelProvider = "deepseek" | "moonshot" | "anthropic";
+export type ChatModelProvider = "deepseek" | "moonshot" | "anthropic" | "custom";
 
 export interface AgentRegistration {
   readonly id: string;
@@ -182,4 +182,13 @@ export interface McpProbeResult {
   readonly ok: boolean;
   readonly tools: readonly string[];
   readonly error?: string;
+}
+
+/** Who may manage provider keys here, and which provider is live. */
+export interface ProviderPolicy {
+  readonly policy: "admins_only" | "members";
+  /** Whether THIS viewer may change keys, so the UI can disable rather than fail. */
+  readonly canManageKeys: boolean;
+  readonly isAdmin: boolean;
+  readonly activeProvider: ChatModelProvider | null;
 }
