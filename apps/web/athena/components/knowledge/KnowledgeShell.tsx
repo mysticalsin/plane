@@ -12,8 +12,11 @@
  * because "no graph yet" is a setup step, not an error.
  */
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { Button } from "@plane/ui";
+import { ChatApiError } from "../../api/http";
+import { FOCUS_RING } from "../../utils/focusRing";
+import { deleteGraphSource } from "../../api/graphClient";
 import { GraphNodeDetail } from "./GraphNodeDetail";
 import { GraphNodeList, GraphNodeListSkeleton } from "./GraphNodeList";
 import { useGraphRuns } from "./useGraphRuns";
@@ -68,6 +71,25 @@ export function KnowledgeShell() {
   const [sourceKey, setSourceKey] = useState<string>("");
   const [selected, setSelected] = useState<GraphNode | null>(null);
   const search = useGraphSearch(sourceKey || undefined);
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  // Sources are removed rather than hidden: a source nobody indexes any more should stop being
+  // offered as something to search, not sit in the picker returning stale answers forever.
+  const removeSource = (key: string) => {
+    setRemoving(key);
+    setRemoveError(null);
+    deleteGraphSource(key)
+      .then(() => {
+        setSelected(null);
+        setSourceKey("");
+        runs.retry();
+      })
+      .catch((cause: unknown) => {
+        setRemoveError(cause instanceof ChatApiError ? cause.message : "Could not remove that source.");
+      })
+      .finally(() => setRemoving(null));
+  };
 
   if (runs.status === "loading") {
     return <GraphNodeListSkeleton />;
@@ -112,10 +134,20 @@ export function KnowledgeShell() {
             <SourcePicker runs={runs.runs} value={sourceKey} onChange={setSourceKey} />
           </div>
           {activeRun && (
-            <p className="text-11 text-tertiary">
+            <p className="flex items-center gap-1.5 text-11 text-tertiary">
               {activeRun.sourceKey} · {activeRun.nodeCount.toLocaleString()} nodes ·{" "}
               {activeRun.edgeCount.toLocaleString()} relationships
               {activeRun.builtAtCommit ? ` · ${activeRun.builtAtCommit.slice(0, 8)}` : ""}
+              <button
+                type="button"
+                onClick={() => removeSource(activeRun.sourceKey)}
+                disabled={removing === activeRun.sourceKey}
+                aria-label={`Stop indexing ${activeRun.sourceKey}`}
+                title={`Stop indexing ${activeRun.sourceKey}`}
+                className={`hover:text-danger ml-auto rounded p-1 text-tertiary transition-colors hover:bg-layer-1 ${FOCUS_RING}`}
+              >
+                <Trash2 className="size-3" strokeWidth={1.75} />
+              </button>
             </p>
           )}
         </div>
@@ -130,6 +162,7 @@ export function KnowledgeShell() {
           {search.status === "empty" && (
             <p className="p-4 text-12 text-tertiary">Nothing matches “{search.search.trim()}”.</p>
           )}
+          {removeError && <p className="text-danger px-4 pt-3 text-12">{removeError}</p>}
           {search.status === "error" && (
             <div className="flex flex-col items-start gap-2 p-4">
               <p className="text-danger text-12">{search.error}</p>

@@ -43,3 +43,8 @@ export function findGraphPath(from: string, to: string, sourceKey?: string): Pro
   const params = withSource(new URLSearchParams({ from, to }), sourceKey);
   return athenaFetch<GraphPathResponse>(`/graph/path?${params.toString()}`);
 }
+
+/** Removes an indexed source and every run for it. */
+export function deleteGraphSource(sourceKey: string): Promise<void> {
+  return athenaFetch<void>(`/graph/sources/${encodeURIComponent(sourceKey)}`, { method: "DELETE" });
+}
