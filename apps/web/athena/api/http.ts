@@ -36,17 +36,38 @@ function safeJsonParse(text: string): unknown {
 }
 
 /**
+ * The Plane workspace slug from the URL, which is always `/:workspaceSlug/...` in this app.
+ *
+ * Sent so the BFF can put the caller in the Athena workspace mirroring the Plane workspace they
+ * are actually looking at. It is a request, not a claim: the BFF asks Plane whether this user
+ * belongs to that workspace and ignores the header unless Plane agrees. Without it, everyone gets
+ * a private workspace of their own and two teammates never share a channel.
+ */
+function currentWorkspaceSlug(): string | null {
+  const [, slug] = window.location.pathname.split("/");
+  // Plane's own non-workspace routes live at these prefixes; sending one as a workspace would just
+  // be a lookup that always fails.
+  const reserved = new Set(["", "accounts", "god-mode", "profile", "settings", "create-workspace", "invitations"]);
+  return slug && !reserved.has(slug) ? slug : null;
+}
+
+/**
  * The one place athena/** touches the network. `credentials: "include"` carries the BFF's
  * session cookie; the Buzz signing key never reaches this file or the browser at all — the
  * BFF holds it server-side and proxies to the relay, per this build's security floor.
  */
 export async function athenaFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const slug = currentWorkspaceSlug();
   let response: Response;
   try {
     response = await fetch(`${ATHENA_API_BASE}${path}`, {
       ...init,
       credentials: "include",
-      headers: { "content-type": "application/json", ...init?.headers },
+      headers: {
+        "content-type": "application/json",
+        ...(slug ? { "x-athena-plane-workspace": slug } : {}),
+        ...init?.headers,
+      },
     });
   } catch (_cause) {
     throw new ChatApiError(0, "NETWORK_ERROR", "Could not reach Athena. Check that the BFF is running.");
