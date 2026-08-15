@@ -31,7 +31,7 @@ export function RepositoriesPanel() {
         {status === "ready" && repos.length > 0 && (
           <div className="mx-auto flex max-w-3xl flex-col gap-4">
             {repos.map((repo) => (
-              <RepoCard key={repo.id} repo={repo} />
+              <RepoCard key={`${repo.owner}/${repo.repo}`} repo={repo} />
             ))}
           </div>
         )}

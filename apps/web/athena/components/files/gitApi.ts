@@ -9,8 +9,13 @@
  * through this BFF.
  */
 import { athenaFetch } from "../../api/http";
-import type { GitRepoListResponse } from "./types";
+import type { GitRefs, GitRepoListResponse } from "./types";
 
 export function listGitRepos(): Promise<GitRepoListResponse> {
   return athenaFetch<GitRepoListResponse>("/git/repos");
+}
+
+/** One call per repository — the relay is asked for its refs only when a card needs them. */
+export function getGitRefs(owner: string, repo: string): Promise<GitRefs> {
+  return athenaFetch<GitRefs>(`/git/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/refs`);
 }

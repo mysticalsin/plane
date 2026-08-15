@@ -51,7 +51,7 @@ export function DeleteFileModal(props: DeleteFileModalProps) {
       content={
         file ? (
           <>
-            Delete <span className="font-medium text-primary">{file.name}</span>? This cannot be undone.
+            Delete <span className="font-medium text-primary">{file.filename}</span>? This cannot be undone.
           </>
         ) : (
           ""

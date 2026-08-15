@@ -39,8 +39,8 @@ export function FileTable(props: FileTableProps) {
         <tbody className="divide-y divide-subtle">
           {files.map((file) => (
             <tr key={file.id} className="divide-x divide-subtle text-13 text-secondary">
-              <td className="max-w-96 truncate px-2.5 py-2 font-medium text-primary">{file.name}</td>
-              <td className="px-2.5 py-2">{formatFileType(file.mimeType)}</td>
+              <td className="max-w-96 truncate px-2.5 py-2 font-medium text-primary">{file.filename}</td>
+              <td className="px-2.5 py-2">{formatFileType(file.contentType)}</td>
               <td className="px-2.5 py-2 text-right tabular-nums">{formatFileSize(file.sizeBytes)}</td>
               <td className="max-w-48 truncate px-2.5 py-2">{file.uploadedByDisplayName}</td>
               <td className="px-2.5 py-2 tabular-nums">{formatFileDate(file.createdAt)}</td>
@@ -52,7 +52,7 @@ export function FileTable(props: FileTableProps) {
                   <a
                     href={fileDownloadUrl(file.id)}
                     rel="noreferrer"
-                    aria-label={`Download ${file.name}`}
+                    aria-label={`Download ${file.filename}`}
                     className={cn(
                       "flex size-11 items-center justify-center rounded-md text-secondary hover:bg-layer-transparent-hover hover:text-primary",
                       FOCUS_RING
@@ -63,7 +63,7 @@ export function FileTable(props: FileTableProps) {
                   <button
                     type="button"
                     onClick={() => onRequestDelete(file)}
-                    aria-label={`Delete ${file.name}`}
+                    aria-label={`Delete ${file.filename}`}
                     className={cn(
                       "flex size-11 items-center justify-center rounded-md text-secondary hover:bg-danger-subtle hover:text-danger-primary",
                       FOCUS_RING

@@ -26,21 +26,23 @@ export type FilesFetchStatus = "loading" | "error" | "ready";
 
 export interface FileAttachment {
   readonly id: string;
-  readonly name: string;
-  readonly mimeType: string;
+  readonly filename: string;
+  readonly contentType: string;
   /** Exact byte count. Always run through ../format.ts's formatFileSize — never hand-rolled. */
   readonly sizeBytes: number;
+  /** The blob's sha256 in Buzz's Blossom store; Athena holds no bytes of its own. */
+  readonly blobHash: string;
   readonly engagementId: string | null;
   readonly channelId: string | null;
-  readonly uploadedById: string;
+  readonly uploadedBy: string;
   readonly uploadedByDisplayName: string;
   /** ISO 8601. */
   readonly createdAt: string;
 }
 
+/** The BFF returns the whole workspace's files in one response — there is no cursor. */
 export interface FileListResponse {
-  readonly items: readonly FileAttachment[];
-  readonly nextCursor: string | null;
+  readonly files: readonly FileAttachment[];
 }
 
 export interface UploadFileInput {
@@ -66,29 +68,37 @@ export type GitFetchStatus = "loading" | "error" | "ready";
 
 export interface GitBranch {
   readonly name: string;
-  readonly headCommitSha: string | null;
+  readonly headCommitSha: string;
 }
 
-export interface GitCommit {
-  readonly sha: string;
-  readonly message: string;
-  readonly authorName: string;
-  /** ISO 8601. */
-  readonly authoredAt: string;
-}
-
+/**
+ * A repository announced on the relay. Exactly what GET /git/repos returns — this used to also
+ * declare `id`, `defaultBranch`, `branches` and `commits`, none of which the BFF has ever sent,
+ * so the card read `repo.branches.length` on undefined and the tab crashed on render.
+ */
 export interface GitRepo {
-  readonly id: string;
-  readonly name: string;
   readonly owner: string;
+  readonly repo: string;
+  readonly name: string | null;
+  readonly description: string | null;
+  readonly channelId: string;
   /** A real git remote — `git clone <cloneUrl>` and `git push` both work against it, backed
    * by Buzz's Smart-HTTP git server. Not a download link. */
   readonly cloneUrl: string;
-  readonly defaultBranch: string | null;
-  readonly branches: readonly GitBranch[];
-  /** `null` means the BFF has no commit-log endpoint for this repo yet — render the honest
-   * "not available yet" state, never an empty list (that implies zero commits exist). */
-  readonly commits: readonly GitCommit[] | null;
+}
+
+/**
+ * Ref advertisement for one repo, from GET /git/repos/:owner/:repo/refs — fetched per card
+ * rather than included in the list, because it costs a round trip to the relay per repository.
+ *
+ * There is deliberately no commit history here: the relay advertises refs and serves packs, and
+ * exposes no log. The BFF says so explicitly (`NotSupportedError` on /log) rather than inventing
+ * one, and this surface says so too instead of rendering an empty list that implies zero commits.
+ */
+export interface GitRefs {
+  readonly head: string | null;
+  readonly refs: Readonly<Record<string, string>>;
+  readonly cloneUrl: string;
 }
 
 export interface GitRepoListResponse {

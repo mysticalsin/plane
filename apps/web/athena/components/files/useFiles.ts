@@ -56,7 +56,7 @@ export function useFiles(): UseFilesResult {
     })
       .then((page) => {
         if (cancelled) return;
-        setFiles(page.items);
+        setFiles(page.files);
         setStatus("ready");
       })
       .catch((err: unknown) => {
