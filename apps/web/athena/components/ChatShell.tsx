@@ -15,6 +15,7 @@ import { useChatChannels } from "../hooks/useChatChannels";
 import { useChatMembers } from "../hooks/useChatMembers";
 import { useChatMessages } from "../hooks/useChatMessages";
 import { useEscapeKey } from "../hooks/useEscapeKey";
+import { useUnread } from "../hooks/useUnread";
 import { groupChannels } from "../utils/groupChannels";
 import { ChannelSidebar } from "./ChannelSidebar";
 import { ChatUiProvider, type ChatUiState } from "./ChatUiContext";
@@ -47,6 +48,7 @@ export function ChatShell(props: ChatShellProps) {
 
   const activeChannel = resolveActiveChannel(channelsResult.channels, props);
   const messagesResult = useChatMessages(activeChannel?.id ?? null, me);
+  const unread = useUnread(activeChannel?.id ?? null);
   const uiState: ChatUiState = { openThreadRootId, openThread: setOpenThreadRootId, closeThread };
 
   return (
@@ -55,6 +57,7 @@ export function ChatShell(props: ChatShellProps) {
         <ChannelSidebar
           workspaceSlug={workspaceSlug}
           grouped={groupChannels(channelsResult.channels)}
+          unread={unread.byChannel}
           activeChannelId={activeChannel?.id ?? null}
           status={channelsResult.status}
           error={channelsResult.error}
