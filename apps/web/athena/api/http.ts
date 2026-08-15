@@ -64,7 +64,10 @@ export async function athenaFetch<T>(path: string, init?: RequestInit): Promise<
       ...init,
       credentials: "include",
       headers: {
-        "content-type": "application/json",
+        // Only when there is actually a body. Fastify rejects an empty body that declares itself
+        // JSON (FST_ERR_CTP_EMPTY_JSON_BODY), which broke every bodyless POST in this app — the
+        // "Test connection" buttons among them — with an error that looked like a server fault.
+        ...(init?.body === undefined || init.body === null ? {} : { "content-type": "application/json" }),
         ...(slug ? { "x-athena-plane-workspace": slug } : {}),
         ...init?.headers,
       },
