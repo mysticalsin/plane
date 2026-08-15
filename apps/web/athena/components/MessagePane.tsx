@@ -60,6 +60,16 @@ export function MessagePane(props: MessagePaneProps) {
           <Hash className="size-4 text-tertiary" strokeWidth={1.75} />
         )}
         <h2 className="text-14 font-semibold text-primary">{channel.name}</h2>
+        {channel.topic && (
+          <>
+            <span className="text-tertiary" aria-hidden>
+              ·
+            </span>
+            <p className="min-w-0 truncate text-13 text-secondary" title={channel.topic}>
+              {channel.topic}
+            </p>
+          </>
+        )}
       </header>
       <div className="min-h-0 flex-1">
         <MessagePaneBody {...props} />

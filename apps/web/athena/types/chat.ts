@@ -43,6 +43,8 @@ export interface ChatChannel {
   readonly kind: ChatChannelKind;
   /** Set only for kind "PROJECT" — the Plane project this channel belongs to. */
   readonly projectId: string | null;
+  /** What the channel is for. Editable in settings; shown in the channel header. */
+  readonly topic: string | null;
 }
 
 /** One emoji's tally on a message, and whether the reader is part of it. */

@@ -41,6 +41,7 @@ export function useChatChannels(): UseChatChannelsResult {
           name: dm.otherMember.displayName,
           kind: "DM",
           projectId: null,
+          topic: null,
         }));
         setChannels([...channelsResponse.channels, ...dms]);
         setStatus("ready");

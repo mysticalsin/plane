@@ -67,7 +67,14 @@ function EstimateCard(props: { estimate: EstimateVersion }) {
     <li className={`flex flex-col gap-3 rounded-md border border-subtle p-4 ${superseded ? "opacity-60" : ""}`}>
       <div className="flex items-center gap-2">
         <span className="text-13 font-medium text-primary">Estimate v{estimate.versionNumber}</span>
-        <StatusPill status={estimate.status} />
+        {/* An estimate is current or superseded — approval in this product is an approval of a
+            price, not of an estimate, so a full status pill here advertised states nothing can
+            reach (migration 019). */}
+        {superseded && (
+          <span className="flex-shrink-0 rounded-full border border-subtle px-2 py-0.5 text-11 text-tertiary">
+            superseded
+          </span>
+        )}
         <span className="ml-auto text-11 text-tertiary">
           <LocalTime iso={estimate.createdAt} format="date" />
         </span>
