@@ -9,17 +9,18 @@
 import { Download, Trash2 } from "lucide-react";
 import { cn } from "@plane/utils";
 import { FOCUS_RING } from "../../utils/focusRing";
-import { fileDownloadUrl } from "./filesApi";
+import { downloadFile } from "./filesApi";
 import { formatFileDate, formatFileSize, formatFileType } from "./format";
 import type { FileAttachment } from "./types";
 
 interface FileTableProps {
   readonly files: readonly FileAttachment[];
   readonly onRequestDelete: (file: FileAttachment) => void;
+  readonly onDownloadFailed: (file: FileAttachment) => void;
 }
 
 export function FileTable(props: FileTableProps) {
-  const { files, onRequestDelete } = props;
+  const { files, onRequestDelete, onDownloadFailed } = props;
 
   return (
     <div className="h-full overflow-auto">
@@ -49,9 +50,9 @@ export function FileTable(props: FileTableProps) {
                     (one is destructive), so they get the full touch-target floor even though
                     the surrounding table is dense — see design-standards.md. */}
                 <div className="flex items-center justify-end gap-1">
-                  <a
-                    href={fileDownloadUrl(file.id)}
-                    rel="noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => void downloadFile(file).catch(() => onDownloadFailed(file))}
                     aria-label={`Download ${file.filename}`}
                     className={cn(
                       "flex size-11 items-center justify-center rounded-md text-secondary hover:bg-layer-transparent-hover hover:text-primary",
@@ -59,7 +60,7 @@ export function FileTable(props: FileTableProps) {
                     )}
                   >
                     <Download className="size-3.5" strokeWidth={1.75} />
-                  </a>
+                  </button>
                   <button
                     type="button"
                     onClick={() => onRequestDelete(file)}

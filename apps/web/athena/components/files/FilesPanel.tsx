@@ -11,6 +11,7 @@ import { useState } from "react";
 import { ChatEmptyState } from "../ChatEmptyState";
 import { ChatErrorState } from "../ChatErrorState";
 import { DeleteFileModal } from "./DeleteFileModal";
+import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { FileTable } from "./FileTable";
 import { FileUploadZone } from "./FileUploadZone";
 import { FilesFilterBar } from "./FilesFilterBar";
@@ -82,7 +83,15 @@ export function FilesPanel() {
         {status === "ready" && files.length === 0 && (
           <ChatEmptyState title={empty.title} description={empty.description} />
         )}
-        {status === "ready" && files.length > 0 && <FileTable files={files} onRequestDelete={setPendingDelete} />}
+        {status === "ready" && files.length > 0 && (
+          <FileTable
+            files={files}
+            onRequestDelete={setPendingDelete}
+            onDownloadFailed={(file) =>
+              setToast({ type: TOAST_TYPE.ERROR, title: "Could not download that file", message: file.filename })
+            }
+          />
+        )}
       </div>
 
       <DeleteFileModal file={pendingDelete} onClose={() => setPendingDelete(null)} onDeleted={refresh} />

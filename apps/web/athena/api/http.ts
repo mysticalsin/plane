@@ -43,7 +43,7 @@ function safeJsonParse(text: string): unknown {
  * belongs to that workspace and ignores the header unless Plane agrees. Without it, everyone gets
  * a private workspace of their own and two teammates never share a channel.
  */
-function currentWorkspaceSlug(): string | null {
+export function currentWorkspaceSlug(): string | null {
   const [, slug] = window.location.pathname.split("/");
   // Plane's own non-workspace routes live at these prefixes; sending one as a workspace would just
   // be a lookup that always fails.

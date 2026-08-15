@@ -16,7 +16,7 @@
  * had ever succeeded.
  */
 import { ATHENA_API_BASE } from "../../config";
-import { athenaFetch, ChatApiError } from "../../api/http";
+import { athenaFetch, ChatApiError, currentWorkspaceSlug } from "../../api/http";
 import type { FileAttachment, FileListResponse, FilesApiErrorBody, UploadFileInput } from "./types";
 
 export interface ListFilesParams {
@@ -42,14 +42,33 @@ export function deleteFile(id: string): Promise<void> {
   return athenaFetch<void>(`/files/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 
-/** Not fetched through athenaFetch — clicked as a plain link so the browser's normal
- * top-level-navigation cookie handling (not XHR/fetch CORS rules) carries the session.
+/**
+ * Downloads a file's bytes and hands them to the browser.
  *
- * `/content` is the route the BFF actually registers; it streams the blob back through the BFF
- * because Blossom auth is a signed Nostr event only the service identity can produce. There has
- * never been a `/download` route — this pointed at one for as long as the button has existed. */
-export function fileDownloadUrl(id: string): string {
-  return `${ATHENA_API_BASE}/files/${encodeURIComponent(id)}/content`;
+ * Deliberately fetched rather than linked. A plain `<a href>` is a top-level navigation, which
+ * cannot carry the `x-athena-plane-workspace` header — so the BFF resolved the caller's default
+ * workspace instead of the one they were looking at and answered 404 for a file that was right
+ * there on screen. The cost is the browser's native download UI; the alternative is a button that
+ * does not work outside one workspace.
+ *
+ * `/content` is the route the BFF registers; there has never been a `/download`, which is what
+ * this pointed at for as long as the button has existed.
+ */
+export async function downloadFile(file: { id: string; filename: string }): Promise<void> {
+  const response = await fetch(`${ATHENA_API_BASE}/files/${encodeURIComponent(file.id)}/content`, {
+    credentials: "include",
+    headers: currentWorkspaceSlug() ? { "x-athena-plane-workspace": currentWorkspaceSlug()! } : {},
+  });
+  if (!response.ok) {
+    throw new ChatApiError(response.status, "DOWNLOAD_FAILED", `Could not download ${file.filename}.`);
+  }
+
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = file.filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function isFilesApiErrorBody(value: unknown): value is FilesApiErrorBody {
@@ -82,6 +101,11 @@ export async function uploadFile(
     xhr.open("POST", `${ATHENA_API_BASE}/files`);
     xhr.withCredentials = true;
     xhr.setRequestHeader("content-type", "application/json");
+    // The one request on this surface that does not go through athenaFetch still has to say which
+    // Plane workspace it is in. Without it the upload succeeded and landed in the caller's default
+    // workspace instead of the one they were looking at — a 201 for a file that never appeared.
+    const slug = currentWorkspaceSlug();
+    if (slug) xhr.setRequestHeader("x-athena-plane-workspace", slug);
 
     xhr.upload.addEventListener("progress", (event) => {
       if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
