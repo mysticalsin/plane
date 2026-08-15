@@ -45,6 +45,13 @@ export interface ChatChannel {
   readonly projectId: string | null;
 }
 
+/** One emoji's tally on a message, and whether the reader is part of it. */
+export interface ChatReactionSummary {
+  readonly emoji: string;
+  readonly count: number;
+  readonly hasReacted: boolean;
+}
+
 export interface ChatMessage {
   readonly id: string;
   readonly channelId: string;
@@ -59,6 +66,26 @@ export interface ChatMessage {
   readonly createdAt: string;
   /** Set when this message is a reply — the id of the message it replies to (NIP-10 'e' tag). */
   readonly threadRootId: string | null;
+  readonly reactions: readonly ChatReactionSummary[];
+}
+
+/**
+ * A direct message conversation — a private two-member channel, not NIP-17 gift wrap: the relay
+ * operator can read it like any other channel. Stated here as well as on the server's own schema
+ * so neither side can quietly assume more privacy than exists.
+ */
+export interface ChatDmChannel {
+  readonly id: string;
+  readonly otherMember: {
+    readonly userId: string;
+    readonly email: string;
+    readonly displayName: string;
+  };
+  readonly createdAt: string;
+}
+
+export interface ChatDmListResponse {
+  readonly dms: readonly ChatDmChannel[];
 }
 
 export interface ChatChannelListResponse {
@@ -102,7 +129,8 @@ export function isChatMessage(value: unknown): value is ChatMessage {
     (value.authorKind === "HUMAN" || value.authorKind === "AGENT") &&
     typeof value.content === "string" &&
     typeof value.createdAt === "string" &&
-    (value.threadRootId === null || typeof value.threadRootId === "string")
+    (value.threadRootId === null || typeof value.threadRootId === "string") &&
+    Array.isArray(value.reactions)
   );
 }
 

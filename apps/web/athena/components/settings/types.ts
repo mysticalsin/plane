@@ -202,9 +202,7 @@ export interface ChannelMember {
   readonly displayName: string;
 }
 
-/** A person in the workspace, from GET /workspace/members — the pool a channel can draw from. */
-export interface WorkspaceMember {
-  readonly id: string;
-  readonly email: string;
-  readonly role: string;
-}
+/** A person in the workspace, from GET /workspace/members — the pool a channel can draw from.
+ * Same shape the chat client declares; re-exported so this surface's components do not import
+ * across into the chat surface for a type. */
+export type { AthenaWorkspaceMember as WorkspaceMember } from "../../api/chatClient";

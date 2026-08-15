@@ -21,11 +21,12 @@ interface ThreadPanelProps {
   readonly members: readonly ChatMember[];
   readonly onClose: () => void;
   readonly onSend: (content: string, threadRootId?: string) => Promise<{ ok: boolean }>;
+  readonly onToggleReaction: (messageId: string, emoji: string) => void;
   readonly disabled: boolean;
 }
 
 export function ThreadPanel(props: ThreadPanelProps) {
-  const { rootMessage, replies, members, onClose, onSend, disabled } = props;
+  const { rootMessage, replies, members, onClose, onSend, onToggleReaction, disabled } = props;
 
   return (
     <aside className="flex h-full w-96 flex-shrink-0 flex-col border-l border-subtle bg-surface-1">
@@ -44,13 +45,26 @@ export function ThreadPanel(props: ThreadPanelProps) {
         </button>
       </div>
       <div className="flex-1 overflow-y-auto px-2 py-3">
-        {rootMessage && <MessageItem message={rootMessage} members={members} showThreadAction={false} />}
+        {rootMessage && (
+          <MessageItem
+            message={rootMessage}
+            members={members}
+            showThreadAction={false}
+            onToggleReaction={onToggleReaction}
+          />
+        )}
         <div className="my-2 border-t border-subtle px-2 py-1.5 text-11 font-medium tracking-wide text-tertiary uppercase">
           {replies.length} {replies.length === 1 ? "reply" : "replies"}
         </div>
         <div className="flex flex-col gap-0.5">
           {replies.map((reply) => (
-            <MessageItem key={reply.id} message={reply} members={members} showThreadAction={false} />
+            <MessageItem
+              key={reply.id}
+              message={reply}
+              members={members}
+              showThreadAction={false}
+              onToggleReaction={onToggleReaction}
+            />
           ))}
         </div>
       </div>

@@ -62,6 +62,7 @@ export function ChatShell(props: ChatShellProps) {
           status={channelsResult.status}
           error={channelsResult.error}
           onRetry={channelsResult.retry}
+          onStartDm={channelsResult.startDm}
         />
         <MessagePane
           channel={activeChannel}
@@ -71,6 +72,7 @@ export function ChatShell(props: ChatShellProps) {
           error={messagesResult.error}
           onRetry={messagesResult.retry}
           onSend={messagesResult.send}
+          onToggleReaction={(messageId, emoji) => void messagesResult.toggleReaction(messageId, emoji)}
           composerDisabled={!me || !activeChannel}
         />
         {openThreadRootId && (
@@ -80,6 +82,7 @@ export function ChatShell(props: ChatShellProps) {
             members={members}
             onClose={closeThread}
             onSend={messagesResult.send}
+            onToggleReaction={(messageId, emoji) => void messagesResult.toggleReaction(messageId, emoji)}
             disabled={!me}
           />
         )}

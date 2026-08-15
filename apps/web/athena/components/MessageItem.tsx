@@ -13,12 +13,14 @@ import { authorColor } from "../utils/authorColor";
 import { splitMentions } from "../utils/mentions";
 import { FOCUS_RING } from "../utils/focusRing";
 import { useChatUi } from "./ChatUiContext";
+import { MessageReactions } from "./MessageReactions";
 import type { ChatMember, ChatMessage } from "../types/chat";
 
 interface MessageItemProps {
   readonly message: ChatMessage;
   readonly members: readonly ChatMember[];
   readonly showThreadAction: boolean;
+  readonly onToggleReaction: (messageId: string, emoji: string) => void;
 }
 
 function MessageContent(props: { content: string; members: readonly ChatMember[] }) {
@@ -45,7 +47,7 @@ function MessageContent(props: { content: string; members: readonly ChatMember[]
 }
 
 export function MessageItem(props: MessageItemProps) {
-  const { message, members, showThreadAction } = props;
+  const { message, members, showThreadAction, onToggleReaction } = props;
   const { resolvedTheme } = useTheme();
   const { openThread } = useChatUi();
   const mode = resolvedTheme === "light" ? "light" : "dark";
@@ -70,6 +72,12 @@ export function MessageItem(props: MessageItemProps) {
           <span className="text-11 text-tertiary">{format(new Date(message.createdAt), "h:mm a")}</span>
         </div>
         <MessageContent content={message.content} members={members} />
+        <MessageReactions
+          messageId={message.id}
+          reactions={message.reactions}
+          onToggle={onToggleReaction}
+          disabled={isPending}
+        />
       </div>
       {showThreadAction && !isPending && (
         <button

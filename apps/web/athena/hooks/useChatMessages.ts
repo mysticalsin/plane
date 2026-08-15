@@ -14,10 +14,10 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { listChatMessages, postChatMessage } from "../api/chatClient";
+import { addReaction, listChatMessages, postChatMessage, removeReaction } from "../api/chatClient";
 import { ChatApiError } from "../api/http";
 import type { AthenaMe } from "../api/chatClient";
-import type { ChatMessage } from "../types/chat";
+import type { ChatMessage, ChatReactionSummary } from "../types/chat";
 import type { ChatFetchStatus } from "./types";
 
 const POLL_INTERVAL_MS = 4_000;
@@ -33,6 +33,7 @@ export interface UseChatMessagesResult {
   readonly error: string | null;
   readonly retry: () => void;
   readonly send: (content: string, threadRootId?: string) => Promise<SendOutcome>;
+  readonly toggleReaction: (messageId: string, emoji: string) => Promise<void>;
 }
 
 /** Keeps any optimistic message a poll hasn't reconciled yet, so a slow relay write
@@ -59,6 +60,7 @@ function buildOptimisticMessage(
     content,
     createdAt: new Date().toISOString(),
     threadRootId: threadRootId ?? null,
+    reactions: [],
   };
 }
 
@@ -94,6 +96,26 @@ export function useChatMessages(channelId: string | null, me: AthenaMe | null): 
     return () => clearInterval(timer);
   }, [channelId, load]);
 
+  /** Applies the server's recount of one message's reactions. */
+  const applyReactions = useCallback((messageId: string, reactions: readonly ChatReactionSummary[]) => {
+    setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, reactions } : m)));
+  }, []);
+
+  const toggleReaction = useCallback(
+    async (messageId: string, emoji: string): Promise<void> => {
+      const message = messages.find((m) => m.id === messageId);
+      const mine = message?.reactions.find((r) => r.emoji === emoji)?.hasReacted ?? false;
+      try {
+        const result = mine ? await removeReaction(messageId, emoji) : await addReaction(messageId, emoji);
+        applyReactions(messageId, result.reactions);
+      } catch {
+        // The count on screen is still the last thing the server said; a failed toggle leaves it
+        // alone rather than inventing a number.
+      }
+    },
+    [messages, applyReactions]
+  );
+
   const send = useCallback(
     async (content: string, threadRootId?: string): Promise<SendOutcome> => {
       if (!channelId || !me) return { ok: false };
@@ -115,5 +137,5 @@ export function useChatMessages(channelId: string | null, me: AthenaMe | null): 
 
   const retry = useCallback(() => void load(false), [load]);
 
-  return { status, messages, error, retry, send };
+  return { status, messages, error, retry, send, toggleReaction };
 }

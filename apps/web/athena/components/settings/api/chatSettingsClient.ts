@@ -9,6 +9,8 @@
  */
 
 import { athenaFetch } from "../../../api/http";
+// One definition of the roster call, in the chat client — this surface just re-exports it.
+export { listWorkspaceMembers } from "../../../api/chatClient";
 import type {
   AgentListResponse,
   AgentRegistration,
@@ -25,7 +27,6 @@ import type {
   ProviderListResponse,
   ChannelMember,
   ProviderPolicy,
-  WorkspaceMember,
   RelaySettings,
   TestProviderResult,
   UpdateAgentInput,
@@ -197,9 +198,4 @@ export function removeChannelMember(channelId: string, userId: string): Promise<
   return athenaFetch(`/chat/settings/channels/${encodeURIComponent(channelId)}/members/${encodeURIComponent(userId)}`, {
     method: "DELETE",
   });
-}
-
-/** The workspace roster, used to offer people who may be added to a private channel. */
-export function listWorkspaceMembers(): Promise<{ members: readonly WorkspaceMember[] }> {
-  return athenaFetch("/workspace/members");
 }

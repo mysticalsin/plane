@@ -18,6 +18,7 @@ import type { GroupedChannels } from "../utils/groupChannels";
 import { FOCUS_RING } from "../utils/focusRing";
 import { ChannelSidebarSkeleton } from "./ChatSkeletons";
 import { ChatErrorState } from "./ChatErrorState";
+import { NewDmButton } from "./NewDmButton";
 
 interface ChannelSidebarProps {
   readonly workspaceSlug: string;
@@ -27,6 +28,7 @@ interface ChannelSidebarProps {
   readonly status: "loading" | "error" | "ready";
   readonly error: string | null;
   readonly onRetry: () => void;
+  readonly onStartDm: (userId: string) => Promise<{ ok: boolean; channelId?: string; error?: string }>;
 }
 
 function channelHref(workspaceSlug: string, channel: ChatChannel): string {
@@ -106,12 +108,13 @@ function ChannelGroup(props: {
 }
 
 export function ChannelSidebar(props: ChannelSidebarProps) {
-  const { workspaceSlug, grouped, unread, activeChannelId, status, error, onRetry } = props;
+  const { workspaceSlug, grouped, unread, activeChannelId, status, error, onRetry, onStartDm } = props;
 
   return (
     <aside className="flex h-full w-60 flex-shrink-0 flex-col border-r border-subtle bg-surface-1">
-      <div className="border-b border-subtle px-3 py-3">
+      <div className="flex items-center justify-between gap-2 border-b border-subtle px-3 py-2.5">
         <h2 className="text-14 font-semibold text-primary">Chat</h2>
+        <NewDmButton workspaceSlug={workspaceSlug} onStart={onStartDm} />
       </div>
       <div className="flex-1 overflow-y-auto p-2">
         {status === "loading" && <ChannelSidebarSkeleton />}

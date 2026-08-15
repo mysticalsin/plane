@@ -20,10 +20,11 @@ interface MessageListProps {
   readonly channelId: string;
   readonly messages: readonly ChatMessage[];
   readonly members: readonly ChatMember[];
+  readonly onToggleReaction: (messageId: string, emoji: string) => void;
 }
 
 export function MessageList(props: MessageListProps) {
-  const { channelId, messages, members } = props;
+  const { channelId, messages, members, onToggleReaction } = props;
   const { openThreadRootId } = useChatUi();
   const containerRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
@@ -57,7 +58,7 @@ export function MessageList(props: MessageListProps) {
       <div className="flex flex-col gap-0.5">
         {topLevel.map((message) => (
           <div key={message.id} className={cn(message.id === openThreadRootId && "rounded-md bg-layer-1")}>
-            <MessageItem message={message} members={members} showThreadAction />
+            <MessageItem message={message} members={members} showThreadAction onToggleReaction={onToggleReaction} />
             {replyCountByRoot.has(message.id) && (
               <ReplyCountBadge count={replyCountByRoot.get(message.id) ?? 0} messageId={message.id} />
             )}
