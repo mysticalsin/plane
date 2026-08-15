@@ -54,6 +54,16 @@ function EdgeGroup(props: {
               <span className="font-mono flex-shrink-0 rounded bg-layer-2 px-1.5 py-0.5 text-11 text-secondary">
                 {neighbor.relation}
               </span>
+              {/* Only when the parser was unsure. A confidence of 1 on every certain edge would be
+                  noise on every row and would stop the uncertain ones standing out. */}
+              {neighbor.confidence !== null && neighbor.confidence < 1 && (
+                <span
+                  className="flex-shrink-0 rounded bg-layer-2 px-1.5 py-0.5 text-11 text-tertiary"
+                  title="How sure the parser was about this relation"
+                >
+                  {Math.round(neighbor.confidence * 100)}% sure
+                </span>
+              )}
               <NodeLine node={neighbor.node} relation={neighbor.relation} />
             </button>
           </li>

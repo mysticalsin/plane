@@ -40,6 +40,9 @@ export type GraphNeighbor = {
   node: GraphNode;
   relation: string;
   direction: "OUT" | "IN";
+  /** 0–1, or null. Shown when the parser was less than certain, so a guessed relation does not
+   * read like one parsed straight out of an import statement. */
+  confidence: number | null;
 };
 
 /** `found: false` means the two nodes are genuinely unconnected — not that one is missing. */
