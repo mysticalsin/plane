@@ -47,7 +47,7 @@ export function IdentityPanel() {
   return (
     <SettingsSection
       title="Your identity"
-      description="How you appear in chat, and the Nostr key Athena signs your messages with."
+      description="How you appear in chat, and the key this workspace's messages are signed with."
     >
       {status === "loading" && <IdentitySkeleton />}
       {status === "error" && <ChatErrorState message={error ?? "Could not load your identity."} onRetry={retry} />}
@@ -78,7 +78,7 @@ export function IdentityPanel() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-13 font-medium text-primary">Nostr public key</span>
+            <span className="text-13 font-medium text-primary">Workspace signing key</span>
             <div className="flex max-w-xl items-center gap-1 rounded-md border border-subtle-1 bg-layer-2 pl-3">
               <code className="font-mono flex-1 overflow-x-auto py-2 text-12 whitespace-nowrap text-secondary">
                 {identity.pubkey}
@@ -90,9 +90,10 @@ export function IdentityPanel() {
           <div className="flex max-w-xl gap-2.5 rounded-md border border-subtle bg-surface-2 p-3">
             <AlertTriangle className="mt-0.5 size-4 flex-shrink-0 text-tertiary" strokeWidth={1.75} />
             <p className="text-12 leading-relaxed text-secondary">
-              Athena holds your Nostr signing key on your behalf and signs every chat message server-side — your private
-              key never reaches your browser. Every signature Athena produces for you is audit-logged. Self-custody
-              (holding your own key in a client you control) is planned but not built yet.
+              Signing is custodial and shared: Athena signs every message in this workspace with the one key above, so
+              the relay cannot tell your messages from a teammate&apos;s by signature — who wrote what is recorded by
+              Athena, not proved by cryptography. Self-custody, where you hold a key of your own in a client you
+              control, is not built yet.
             </p>
           </div>
         </div>
