@@ -21,11 +21,13 @@ import { useEscapeKey } from "../hooks/useEscapeKey";
 
 interface NewDmButtonProps {
   readonly workspaceSlug: string;
+  /** Excluded from the list — the server refuses a DM with yourself, so offering it is a dead end. */
+  readonly currentUserId: string | null;
   readonly onStart: (userId: string) => Promise<{ ok: boolean; channelId?: string; error?: string }>;
 }
 
 export function NewDmButton(props: NewDmButtonProps) {
-  const { workspaceSlug, onStart } = props;
+  const { workspaceSlug, currentUserId, onStart } = props;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [members, setMembers] = useState<readonly AthenaWorkspaceMember[] | null>(null);
@@ -37,9 +39,9 @@ export function NewDmButton(props: NewDmButtonProps) {
   useEffect(() => {
     if (!open || members) return;
     listWorkspaceMembers()
-      .then((result) => setMembers(result.members))
+      .then((result) => setMembers(result.members.filter((member) => member.id !== currentUserId)))
       .catch(() => setError("Could not load who is here."));
-  }, [open, members]);
+  }, [open, members, currentUserId]);
 
   async function start(userId: string) {
     setBusy(true);

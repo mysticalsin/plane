@@ -63,6 +63,7 @@ export function ChatShell(props: ChatShellProps) {
           error={channelsResult.error}
           onRetry={channelsResult.retry}
           onStartDm={channelsResult.startDm}
+          currentUserId={me?.id ?? null}
         />
         <MessagePane
           channel={activeChannel}
