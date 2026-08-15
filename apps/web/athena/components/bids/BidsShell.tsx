@@ -14,6 +14,7 @@ import { Button, Loader } from "@plane/ui";
 import { ChatApiError } from "../../api/http";
 import { listBids } from "../../api/bidsClient";
 import { BidDetail } from "./BidDetail";
+import { NewBidModal } from "./NewBidModal";
 import type { BidPackage } from "../../types/bids";
 
 function humanState(state: string): string {
@@ -28,6 +29,7 @@ export function BidsShell() {
   const [selected, setSelected] = useState<BidPackage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [creating, setCreating] = useState(false);
 
   const reload = useCallback(() => setAttempt((n) => n + 1), []);
 
@@ -80,9 +82,10 @@ export function BidsShell() {
           A bid package carries the estimate and price for one engagement, and keeps every version of both. Once a price
           is approved, that exact version is what delivery is held to.
         </p>
-        <code className="font-mono rounded-md bg-layer-2 px-3 py-2 text-12 text-secondary">
-          POST /athena-api/api/v1/bids
-        </code>
+        <Button variant="primary" size="sm" onClick={() => setCreating(true)}>
+          New bid
+        </Button>
+        <NewBidModal isOpen={creating} onClose={() => setCreating(false)} onCreated={reload} />
       </div>
     );
   }
@@ -90,6 +93,12 @@ export function BidsShell() {
   return (
     <div className="flex h-full overflow-hidden">
       <div className="flex w-full max-w-xs flex-col border-r border-subtle">
+        <div className="flex items-center justify-between gap-2 border-b border-subtle px-3 py-2.5">
+          <h2 className="text-14 font-semibold text-primary">Bids</h2>
+          <Button variant="neutral-primary" size="sm" onClick={() => setCreating(true)}>
+            New bid
+          </Button>
+        </div>
         <ul className="flex flex-col divide-y divide-subtle overflow-y-auto">
           {bids.map((bid) => (
             <li key={bid.id}>
@@ -126,6 +135,8 @@ export function BidsShell() {
           </div>
         )}
       </div>
+
+      <NewBidModal isOpen={creating} onClose={() => setCreating(false)} onCreated={reload} />
     </div>
   );
 }

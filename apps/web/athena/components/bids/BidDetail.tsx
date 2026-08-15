@@ -17,6 +17,7 @@ import { ChatApiError } from "../../api/http";
 import { LocalTime } from "../LocalTime";
 import { addPricing, approvePricing, listEstimates, listPricing, transitionBid } from "../../api/bidsClient";
 import { formatMarginPct, formatMoney } from "./money";
+import { NewEstimateModal } from "./NewEstimateModal";
 import type { BidPackage, EstimateVersion, PricingVersion } from "../../types/bids";
 
 /** Mirrors BID_TRANSITIONS in packages/domain/src/transitions.ts. The server is still the
@@ -126,6 +127,7 @@ export function BidDetail(props: BidDetailProps) {
   const [busy, setBusy] = useState(false);
   const [discount, setDiscount] = useState("0");
   const [attempt, setAttempt] = useState(0);
+  const [estimating, setEstimating] = useState(false);
 
   const reload = useCallback(() => setAttempt((n) => n + 1), []);
 
@@ -216,9 +218,14 @@ export function BidDetail(props: BidDetailProps) {
       )}
 
       <section className="flex flex-col gap-2">
-        <h3 className="flex items-center gap-1.5 text-12 font-medium tracking-wide text-secondary uppercase">
-          <History className="size-3.5" strokeWidth={1.75} /> Estimates
-        </h3>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="flex items-center gap-1.5 text-12 font-medium tracking-wide text-secondary uppercase">
+            <History className="size-3.5" strokeWidth={1.75} /> Estimates
+          </h3>
+          <Button variant="neutral-primary" size="sm" onClick={() => setEstimating(true)}>
+            {estimates.length === 0 ? "Add an estimate" : "Revise estimate"}
+          </Button>
+        </div>
         {estimates.length === 0 ? (
           <p className="rounded-md bg-layer-1 px-3 py-2 text-12 text-tertiary">
             No estimate yet. Estimates are append-only — every revision is kept, so a number that was approved can
@@ -307,9 +314,11 @@ export function BidDetail(props: BidDetailProps) {
         )}
         <p className="text-11 text-tertiary">
           An approval is pinned to the version it approved. Re-pricing supersedes the old version, and a superseded
-          version can no longer be approved.
+          version can no longer be approved — as does revising the estimate underneath it.
         </p>
       </section>
+
+      <NewEstimateModal bidId={bid.id} isOpen={estimating} onClose={() => setEstimating(false)} onCreated={reload} />
     </div>
   );
 }

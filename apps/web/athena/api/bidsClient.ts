@@ -10,8 +10,10 @@ import type {
   BidListResponse,
   BidPackage,
   EstimateListResponse,
+  EstimateVersion,
   PricingListResponse,
   PricingVersion,
+  WireMoney,
 } from "../types/bids";
 import { athenaFetch } from "./http";
 
@@ -51,4 +53,39 @@ export function transitionBid(bidId: string, to: string): Promise<BidPackage> {
     method: "POST",
     body: JSON.stringify({ to }),
   });
+}
+
+export interface CreateBidInput {
+  readonly engagementId: string;
+  readonly name: string;
+  readonly submissionDeadline?: string | null;
+  readonly notes?: string | null;
+}
+
+export function createBid(input: CreateBidInput): Promise<BidPackage> {
+  return athenaFetch<BidPackage>("/bids", { method: "POST", body: JSON.stringify(input) });
+}
+
+/** Money crosses as minor units in a string — see types/bids.ts. Rates and expenses are entered in
+ * whole currency units and converted at the edge, so nothing here does float arithmetic on money. */
+export interface CreateEstimateInput {
+  readonly rateCard: {
+    readonly currency: string;
+    readonly contingencyPct: number;
+    readonly entries: readonly {
+      readonly role: string;
+      readonly resourceType: "INTERNAL" | "SUBCONTRACTOR";
+      readonly billRatePerHour: WireMoney;
+      readonly costRatePerHour: WireMoney;
+    }[];
+  };
+  readonly lines: readonly {
+    readonly role: string;
+    readonly plannedHours: number;
+    readonly expense?: WireMoney;
+  }[];
+}
+
+export function addEstimate(bidId: string, input: CreateEstimateInput): Promise<EstimateVersion> {
+  return athenaFetch<EstimateVersion>(`/bids/${bidId}/estimates`, { method: "POST", body: JSON.stringify(input) });
 }
