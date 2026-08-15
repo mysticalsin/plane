@@ -23,15 +23,15 @@ import type { BidPackage, EstimateVersion, PricingVersion } from "../../types/bi
 /** Mirrors BID_TRANSITIONS in packages/domain/src/transitions.ts. The server is still the
  * authority — this only decides which buttons are worth showing. */
 const NEXT_STATES: Record<string, readonly string[]> = {
-  DRAFT: ["QUALIFICATION"],
-  QUALIFICATION: ["BID_NO_BID_REVIEW"],
-  BID_NO_BID_REVIEW: ["IN_PREPARATION", "LOST"],
-  IN_PREPARATION: ["INTERNAL_REVIEW"],
-  INTERNAL_REVIEW: ["CHANGES_REQUIRED", "APPROVED_FOR_SUBMISSION"],
-  CHANGES_REQUIRED: ["IN_PREPARATION"],
-  APPROVED_FOR_SUBMISSION: ["SUBMITTED"],
-  SUBMITTED: ["CLARIFICATION_NEGOTIATION", "WON", "LOST"],
-  CLARIFICATION_NEGOTIATION: ["SUBMITTED", "WON", "LOST"],
+  DRAFT: ["QUALIFICATION", "CANCELLED"],
+  QUALIFICATION: ["BID_NO_BID_REVIEW", "CANCELLED"],
+  BID_NO_BID_REVIEW: ["IN_PREPARATION", "LOST", "CANCELLED"],
+  IN_PREPARATION: ["INTERNAL_REVIEW", "CANCELLED"],
+  INTERNAL_REVIEW: ["CHANGES_REQUIRED", "APPROVED_FOR_SUBMISSION", "CANCELLED"],
+  CHANGES_REQUIRED: ["IN_PREPARATION", "CANCELLED"],
+  APPROVED_FOR_SUBMISSION: ["SUBMITTED", "CANCELLED"],
+  SUBMITTED: ["CLARIFICATION_NEGOTIATION", "WON", "LOST", "CANCELLED"],
+  CLARIFICATION_NEGOTIATION: ["SUBMITTED", "WON", "LOST", "CANCELLED"],
   WON: [],
   LOST: [],
   CANCELLED: [],
@@ -193,18 +193,30 @@ export function BidDetail(props: BidDetailProps) {
             {humanState(bid.state)}
           </span>
         </div>
+        {(bid.submissionDeadline || bid.notes) && (
+          <div className="flex flex-col gap-1">
+            {bid.submissionDeadline && (
+              <span className="text-12 text-secondary">
+                Submission deadline: <LocalTime iso={bid.submissionDeadline} format="date" />
+              </span>
+            )}
+            {bid.notes && <p className="max-w-2xl text-12 whitespace-pre-wrap text-secondary">{bid.notes}</p>}
+          </div>
+        )}
         {nextStates.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-11 text-tertiary">Move to:</span>
             {nextStates.map((state) => (
               <Button
                 key={state}
-                variant="neutral-primary"
+                // Cancelling ends the bid, so it does not look like the next step in the flow.
+                variant={state === "CANCELLED" ? "neutral-primary" : "neutral-primary"}
                 size="sm"
                 disabled={busy}
+                className={state === "CANCELLED" ? "ml-auto" : undefined}
                 onClick={() => run(() => transitionBid(bid.id, state).then(props.onChanged))}
               >
-                {humanState(state)}
+                {state === "CANCELLED" ? "Cancel bid" : humanState(state)}
               </Button>
             ))}
           </div>

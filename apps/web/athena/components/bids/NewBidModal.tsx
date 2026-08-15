@@ -13,7 +13,7 @@ import { Button, CustomSelect, EModalPosition, EModalWidth, Input, ModalCore, Te
 import { cn } from "@plane/utils";
 import { ChatApiError } from "../../api/http";
 import { createBid } from "../../api/bidsClient";
-import { listEngagementOptions, type EngagementOption } from "../files/engagementsApi";
+import { createEngagement, listEngagementOptions, type EngagementOption } from "../files/engagementsApi";
 import { FOCUS_RING } from "../../utils/focusRing";
 
 interface NewBidModalProps {
@@ -29,6 +29,7 @@ export function NewBidModal(props: NewBidModalProps) {
   const [name, setName] = useState("");
   const [deadline, setDeadline] = useState("");
   const [notes, setNotes] = useState("");
+  const [newEngagementName, setNewEngagementName] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,12 +45,25 @@ export function NewBidModal(props: NewBidModalProps) {
     setDeadline("");
     setNotes("");
     setEngagementId(null);
+    setNewEngagementName("");
     setError(null);
   }
 
   async function submit() {
-    if (!engagementId) {
-      setError("Pick the engagement this bid is for.");
+    // A bid hangs off an engagement, and a workspace that has none has nowhere to hang it. Rather
+    // than sending people to a surface that does not exist, the first engagement can be created
+    // here, in the flow that needs it.
+    let targetEngagement = engagementId;
+    if (!targetEngagement && newEngagementName.trim().length > 0) {
+      try {
+        targetEngagement = (await createEngagement(newEngagementName.trim())).id;
+      } catch (cause) {
+        setError(cause instanceof ChatApiError ? cause.message : "Could not create that engagement.");
+        return;
+      }
+    }
+    if (!targetEngagement) {
+      setError("Pick the engagement this bid is for, or name a new one.");
       return;
     }
     if (name.trim().length === 0) {
@@ -61,7 +75,7 @@ export function NewBidModal(props: NewBidModalProps) {
     setError(null);
     try {
       await createBid({
-        engagementId,
+        engagementId: targetEngagement,
         name: name.trim(),
         // A date input gives a calendar day; the API takes an instant. End of that day, UTC, so a
         // deadline of the 30th does not become the 29th for anyone west of Greenwich.
@@ -112,7 +126,19 @@ export function NewBidModal(props: NewBidModalProps) {
             ))}
           </CustomSelect>
           {engagements?.length === 0 && (
-            <span className="text-11 text-tertiary">No engagements yet — create one before starting a bid.</span>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-11 text-tertiary">
+                No engagements yet. Name the one this bid is for and it will be created with it.
+              </span>
+              <Input
+                value={newEngagementName}
+                onChange={(e) => setNewEngagementName(e.target.value)}
+                placeholder="e.g. Rail operator digital twin"
+                maxLength={200}
+                aria-label="New engagement name"
+                className={FOCUS_RING}
+              />
+            </div>
           )}
         </div>
 

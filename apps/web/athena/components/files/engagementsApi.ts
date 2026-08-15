@@ -23,3 +23,8 @@ export async function listEngagementOptions(): Promise<readonly EngagementOption
   const res = await athenaFetch<EngagementListResponse>("/engagements");
   return res.engagements;
 }
+
+/** Idempotent server-side on (workspace, name) — creating one that exists returns the existing row. */
+export function createEngagement(name: string): Promise<EngagementOption> {
+  return athenaFetch<EngagementOption>("/engagements", { method: "POST", body: JSON.stringify({ name }) });
+}
