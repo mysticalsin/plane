@@ -44,6 +44,36 @@ export type BidPackage = {
   readonly createdAt: string;
 };
 
+/** What a won bid committed to, and how delivery is tracking against it. */
+export type BaselineResponse = {
+  readonly baseline: {
+    readonly id: string;
+    readonly versionNumber: number;
+    readonly frozenAt: string;
+    readonly frozenBy: string;
+    readonly sourceEstimateVersionId: string;
+    readonly sourcePricingVersionId: string;
+    readonly price: WireMoney;
+    readonly forecastCost: WireMoney;
+    readonly forecastMarginPct: number | null;
+    readonly lines: readonly { readonly role: string; readonly plannedHours: number }[];
+  };
+  readonly delivery: readonly {
+    readonly id: string;
+    readonly role: string;
+    readonly title: string;
+    readonly status: string;
+    readonly committedHours: number;
+  }[];
+  readonly variance: {
+    readonly committedHours: number;
+    readonly deliveredHours: number;
+    readonly openHours: number;
+    readonly cancelledHours: number;
+    readonly droppedHours: number;
+  };
+};
+
 export type EstimateLine = {
   readonly role: string;
   readonly plannedHours: number;

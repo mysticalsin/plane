@@ -17,6 +17,7 @@ import { ChatApiError } from "../../api/http";
 import { LocalTime } from "../LocalTime";
 import { addPricing, approvePricing, listEstimates, listPricing, transitionBid } from "../../api/bidsClient";
 import { formatMarginPct, formatMoney } from "./money";
+import { BaselinePanel } from "./BaselinePanel";
 import { NewEstimateModal } from "./NewEstimateModal";
 import type { BidPackage, EstimateVersion, PricingVersion } from "../../types/bids";
 
@@ -235,6 +236,9 @@ export function BidDetail(props: BidDetailProps) {
           {actionError}
         </p>
       )}
+
+      {/* Only renders once the bid is won — the panel asks, and gets a 404 before then. */}
+      <BaselinePanel bidId={bid.id} />
 
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-3">

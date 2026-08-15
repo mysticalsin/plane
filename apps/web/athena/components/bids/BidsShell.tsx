@@ -79,8 +79,9 @@ export function BidsShell() {
         <FileSignature className="size-5 text-tertiary" strokeWidth={1.75} />
         <h3 className="text-15 font-medium text-primary">No bid packages yet</h3>
         <p className="max-w-md text-13 text-secondary">
-          A bid package carries the estimate and price for one engagement, and keeps every version of both. Once a price
-          is approved, that exact version is what delivery is held to.
+          A bid package carries the estimate and price for one engagement, and keeps every version of both. When the bid
+          is won, the approved price and the hours behind it freeze as the Promise Baseline, and delivery is generated
+          from it.
         </p>
         <Button variant="primary" size="sm" onClick={() => setCreating(true)}>
           New bid

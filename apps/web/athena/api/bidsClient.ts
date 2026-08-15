@@ -7,6 +7,7 @@
  */
 
 import type {
+  BaselineResponse,
   BidListResponse,
   BidPackage,
   EstimateListResponse,
@@ -88,4 +89,9 @@ export interface CreateEstimateInput {
 
 export function addEstimate(bidId: string, input: CreateEstimateInput): Promise<EstimateVersion> {
   return athenaFetch<EstimateVersion>(`/bids/${bidId}/estimates`, { method: "POST", body: JSON.stringify(input) });
+}
+
+/** 404 before the bid is won — there is no baseline until then, and the caller renders nothing. */
+export function getBaseline(bidId: string): Promise<BaselineResponse> {
+  return athenaFetch<BaselineResponse>(`/bids/${bidId}/baseline`);
 }
