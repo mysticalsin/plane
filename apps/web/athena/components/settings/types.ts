@@ -194,3 +194,17 @@ export interface ProviderPolicy {
   readonly isAdmin: boolean;
   readonly activeProvider: ChatModelProvider | null;
 }
+
+/** A person who can see a private channel. */
+export interface ChannelMember {
+  readonly userId: string;
+  readonly email: string;
+  readonly displayName: string;
+}
+
+/** A person in the workspace, from GET /workspace/members — the pool a channel can draw from. */
+export interface WorkspaceMember {
+  readonly id: string;
+  readonly email: string;
+  readonly role: string;
+}

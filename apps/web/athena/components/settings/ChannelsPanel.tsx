@@ -3,22 +3,24 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  *
- * Channel administration — list, create, rename, set topic, archive. The visibility toggle is
- * rendered honestly per ChannelFormModal's own note: private is recorded, not yet enforced on
- * message reads (see apps/bff/src/routes/chatSettings/channels.ts's module comment).
+ * Channel administration — list, create, rename, set topic, archive, and for a private channel,
+ * who is in it. Private is enforced on reads (requireChannelAccess in the BFF), so the roster here
+ * is the thing that decides who can open the channel at all.
  */
-import { useState } from "react";
-import { Archive, ArchiveRestore, Globe2, Hash, Lock, Pencil } from "lucide-react";
+import { Fragment, useEffect, useState } from "react";
+import { Archive, ArchiveRestore, Globe2, Hash, Lock, Pencil, Users } from "lucide-react";
 import { Button, Loader } from "@plane/ui";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { cn } from "@plane/utils";
 import { ChatEmptyState } from "../ChatEmptyState";
 import { ChatErrorState } from "../ChatErrorState";
 import { FOCUS_RING } from "../../utils/focusRing";
+import { ChannelMembers } from "./ChannelMembers";
+import { listWorkspaceMembers } from "./api/chatSettingsClient";
 import { useChannelSettings } from "./hooks/useChannelSettings";
 import { ChannelFormModal, type ChannelFormValues } from "./shared/ChannelFormModal";
 import { SettingsSection } from "./shared/SettingsSection";
-import type { ChannelSettings } from "./types";
+import type { ChannelSettings, WorkspaceMember } from "./types";
 
 function ChannelsSkeleton() {
   return (
@@ -44,11 +46,13 @@ interface ChannelRowProps {
   readonly channel: ChannelSettings;
   readonly onEdit: (channel: ChannelSettings) => void;
   readonly onToggleArchive: (channel: ChannelSettings) => void;
+  readonly onToggleMembers: (channel: ChannelSettings) => void;
+  readonly membersOpen: boolean;
   readonly busy: boolean;
 }
 
 function ChannelRow(props: ChannelRowProps) {
-  const { channel, onEdit, onToggleArchive, busy } = props;
+  const { channel, onEdit, onToggleArchive, onToggleMembers, membersOpen, busy } = props;
   return (
     <tr className={cn("divide-x divide-subtle text-13 text-secondary", channel.archived && "opacity-60")}>
       <td className="px-3 py-2.5">
@@ -69,6 +73,22 @@ function ChannelRow(props: ChannelRowProps) {
       <td className="px-3 py-2.5 text-right tabular-nums">{channel.memberCount}</td>
       <td className="px-3 py-2.5">
         <div className="flex items-center justify-end gap-1">
+          {channel.isPrivate && (
+            <button
+              type="button"
+              onClick={() => onToggleMembers(channel)}
+              disabled={busy}
+              aria-label={`${membersOpen ? "Hide" : "Show"} who is in ${channel.name}`}
+              aria-expanded={membersOpen}
+              className={cn(
+                "flex size-8 items-center justify-center rounded-md text-secondary hover:bg-layer-transparent-hover hover:text-primary disabled:opacity-50",
+                membersOpen && "bg-layer-transparent-hover text-primary",
+                FOCUS_RING
+              )}
+            >
+              <Users className="size-3.5" strokeWidth={1.75} />
+            </button>
+          )}
           <button
             type="button"
             onClick={() => onEdit(channel)}
@@ -108,6 +128,22 @@ export function ChannelsPanel() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<ChannelSettings | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [openMembersFor, setOpenMembersFor] = useState<string | null>(null);
+  const [workspaceMembers, setWorkspaceMembers] = useState<readonly WorkspaceMember[]>([]);
+
+  // The roster is only needed to offer people to add, so a failure here leaves the membership
+  // list readable and the picker empty rather than breaking the panel.
+  useEffect(() => {
+    let cancelled = false;
+    listWorkspaceMembers()
+      .then((result) => {
+        if (!cancelled) setWorkspaceMembers(result.members);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function openCreate() {
     setEditingChannel(null);
@@ -174,13 +210,28 @@ export function ChannelsPanel() {
             </thead>
             <tbody className="divide-y divide-subtle bg-surface-1">
               {channels.map((channel) => (
-                <ChannelRow
-                  key={channel.id}
-                  channel={channel}
-                  onEdit={openEdit}
-                  onToggleArchive={(c) => void handleToggleArchive(c)}
-                  busy={busyId === channel.id}
-                />
+                <Fragment key={channel.id}>
+                  <ChannelRow
+                    channel={channel}
+                    onEdit={openEdit}
+                    onToggleArchive={(c) => void handleToggleArchive(c)}
+                    onToggleMembers={(c) => setOpenMembersFor((current) => (current === c.id ? null : c.id))}
+                    membersOpen={openMembersFor === channel.id}
+                    busy={busyId === channel.id}
+                  />
+                  {openMembersFor === channel.id && (
+                    <tr>
+                      <td colSpan={5} className="p-0">
+                        <ChannelMembers
+                          channelId={channel.id}
+                          channelName={channel.name}
+                          workspaceMembers={workspaceMembers}
+                          onChanged={retry}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
             </tbody>
           </table>

@@ -102,8 +102,8 @@ export function ChannelFormModal(props: ChannelFormModalProps) {
             />
           </div>
           <p className="text-12 text-tertiary">
-            Marks the channel private in Athena's records. Message reads are not yet gated on this flag — every
-            workspace member can currently read every channel regardless of this setting.
+            Only people added to this channel can find it or read it. You are added automatically; manage the rest from
+            the members button on the channel&apos;s row.
           </p>
         </div>
 

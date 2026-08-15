@@ -23,7 +23,9 @@ import type {
   NotificationPrefListResponse,
   ProviderKeyStatus,
   ProviderListResponse,
+  ChannelMember,
   ProviderPolicy,
+  WorkspaceMember,
   RelaySettings,
   TestProviderResult,
   UpdateAgentInput,
@@ -178,4 +180,26 @@ export function setActiveProvider(
     method: "PUT",
     body: JSON.stringify({ provider }),
   });
+}
+
+export function listChannelMembers(channelId: string): Promise<{ members: readonly ChannelMember[] }> {
+  return athenaFetch(`/chat/settings/channels/${encodeURIComponent(channelId)}/members`);
+}
+
+export function addChannelMember(channelId: string, userId: string): Promise<{ members: readonly ChannelMember[] }> {
+  return athenaFetch(`/chat/settings/channels/${encodeURIComponent(channelId)}/members`, {
+    method: "POST",
+    body: JSON.stringify({ userId }),
+  });
+}
+
+export function removeChannelMember(channelId: string, userId: string): Promise<{ members: readonly ChannelMember[] }> {
+  return athenaFetch(`/chat/settings/channels/${encodeURIComponent(channelId)}/members/${encodeURIComponent(userId)}`, {
+    method: "DELETE",
+  });
+}
+
+/** The workspace roster, used to offer people who may be added to a private channel. */
+export function listWorkspaceMembers(): Promise<{ members: readonly WorkspaceMember[] }> {
+  return athenaFetch("/workspace/members");
 }
