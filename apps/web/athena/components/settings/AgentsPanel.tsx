@@ -15,7 +15,6 @@ import { cn } from "@plane/utils";
 import { ChatEmptyState } from "../ChatEmptyState";
 import { ChatErrorState } from "../ChatErrorState";
 import { MentionableAgents } from "./MentionableAgents";
-import { PROVIDER_LABELS } from "./providerLabels";
 import { useAgentSettings } from "./hooks/useAgentSettings";
 import { AgentFormModal } from "./shared/AgentFormModal";
 import { formatSettingsTimestamp } from "./shared/formatDate";
@@ -48,8 +47,9 @@ function AgentRow(props: AgentRowProps) {
           {agent.name}
         </div>
       </td>
-      <td className="px-3 py-2.5">{PROVIDER_LABELS[agent.provider]}</td>
-      <td className="font-mono max-w-56 truncate px-3 py-2.5 text-12">{agent.model}</td>
+      <td className="font-mono max-w-56 truncate px-3 py-2.5 text-12" title={agent.pubkey}>
+        {agent.pubkey.slice(0, 12)}…
+      </td>
       <td className="px-3 py-2.5">{formatSettingsTimestamp(agent.lastAnsweredAt)}</td>
       <td className="px-3 py-2.5 text-right">
         <ToggleSwitch
@@ -102,8 +102,7 @@ export function AgentsPanel() {
             <thead className="divide-y divide-subtle bg-surface-2">
               <tr className="divide-x divide-subtle text-13 text-primary">
                 <th className="px-3 py-2 text-left font-medium">Name</th>
-                <th className="px-3 py-2 text-left font-medium">Provider</th>
-                <th className="px-3 py-2 text-left font-medium">Model</th>
+                <th className="px-3 py-2 text-left font-medium">Public key</th>
                 <th className="px-3 py-2 text-left font-medium">Last active</th>
                 <th className="px-3 py-2 text-right font-medium">Enabled</th>
               </tr>

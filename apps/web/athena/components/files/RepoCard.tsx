@@ -31,10 +31,11 @@ function BranchPill(props: { name: string; isHead: boolean }) {
 
 /** `refs/heads/main` → `main`; tags are not branches and are left out. */
 function branchNames(refs: GitRefs): readonly string[] {
-  return Object.keys(refs.refs)
+  const names = Object.keys(refs.refs)
     .filter((ref) => ref.startsWith("refs/heads/"))
-    .map((ref) => ref.slice("refs/heads/".length))
-    .toSorted();
+    .map((ref) => ref.slice("refs/heads/".length));
+  names.sort();
+  return names;
 }
 
 function Branches(props: { refs: GitRefs | null; error: string | null }) {

@@ -65,12 +65,12 @@ export interface UpdateChannelInput {
  * three providers the BYOK surface and the agent roster both validate against. */
 export type ChatModelProvider = "deepseek" | "moonshot" | "anthropic" | "custom";
 
+/** Who is mentionable, and whether they are on. Which model answers is the workspace's setting,
+ * not the agent's — see the Model panel. */
 export interface AgentRegistration {
   readonly id: string;
   readonly name: string;
   readonly pubkey: string;
-  readonly model: string;
-  readonly provider: ChatModelProvider;
   readonly enabled: boolean;
   readonly lastAnsweredAt: string | null;
 }
@@ -83,13 +83,10 @@ export interface CreateAgentInput {
   readonly name: string;
   /** The running agent's 64-character Nostr public key — what a mention is addressed to. */
   readonly pubkey: string;
-  readonly model: string;
-  readonly provider: ChatModelProvider;
 }
 
 export interface UpdateAgentInput {
-  readonly enabled?: boolean;
-  readonly model?: string;
+  readonly enabled: boolean;
 }
 
 export interface ProviderKeyStatus {
