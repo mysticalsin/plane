@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Check, History, Lock } from "lucide-react";
 import { Button, Loader } from "@plane/ui";
 import { ChatApiError } from "../../api/http";
+import { LocalTime } from "../LocalTime";
 import { addPricing, approvePricing, listEstimates, listPricing, transitionBid } from "../../api/bidsClient";
 import { formatMarginPct, formatMoney } from "./money";
 import type { BidPackage, EstimateVersion, PricingVersion } from "../../types/bids";
@@ -66,7 +67,9 @@ function EstimateCard(props: { estimate: EstimateVersion }) {
       <div className="flex items-center gap-2">
         <span className="text-13 font-medium text-primary">Estimate v{estimate.versionNumber}</span>
         <StatusPill status={estimate.status} />
-        <span className="ml-auto text-11 text-tertiary">{new Date(estimate.createdAt).toLocaleDateString()}</span>
+        <span className="ml-auto text-11 text-tertiary">
+          <LocalTime iso={estimate.createdAt} format="date" />
+        </span>
       </div>
 
       <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-3">
@@ -283,7 +286,7 @@ export function BidDetail(props: BidDetailProps) {
                   {version.approvedAt && (
                     <span className="flex items-center gap-1 text-11 text-tertiary">
                       <Check className="size-3" strokeWidth={2} />
-                      approved {new Date(version.approvedAt).toLocaleDateString()}
+                      approved <LocalTime iso={version.approvedAt} format="date" />
                     </span>
                   )}
                   {version.status === "DRAFT" && (
