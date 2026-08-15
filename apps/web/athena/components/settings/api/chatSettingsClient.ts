@@ -33,6 +33,7 @@ import type {
   UpdateChannelInput,
   UpdateMcpServerInput,
   UpdateNotificationPrefInput,
+  McpInventory,
   McpProbeResult,
   McpServer,
   McpServerListResponse,
@@ -198,4 +199,10 @@ export function removeChannelMember(channelId: string, userId: string): Promise<
   return athenaFetch(`/chat/settings/channels/${encodeURIComponent(channelId)}/members/${encodeURIComponent(userId)}`, {
     method: "DELETE",
   });
+}
+
+/** What the workspace's MCP servers are actually offering right now, and which are refusing.
+ * The same call the agent makes, so the panel shows the agent's own view rather than a guess. */
+export function getMcpInventory(): Promise<McpInventory> {
+  return athenaFetch<McpInventory>("/mcp/tools");
 }

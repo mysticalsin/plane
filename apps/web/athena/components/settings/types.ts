@@ -179,6 +179,14 @@ export interface UpdateMcpServerInput {
   readonly authToken?: string | null;
 }
 
+/** Live state of every enabled MCP server, from GET /mcp/tools — the same answer the agent gets.
+ * `unavailable` is why a server contributes no tools, which is otherwise invisible until someone
+ * happens to press Test. */
+export interface McpInventory {
+  readonly tools: readonly { readonly serverId: string; readonly serverName: string; readonly toolName: string }[];
+  readonly unavailable: readonly { readonly serverName: string; readonly error: string }[];
+}
+
 /** Result of the Test button — a failed probe is a successful test run with a reason. */
 export interface McpProbeResult {
   readonly ok: boolean;

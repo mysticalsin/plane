@@ -20,12 +20,13 @@ import { ChatApiError } from "../../api/http";
 import {
   createMcpServer,
   deleteMcpServer,
+  getMcpInventory,
   listMcpServers,
   testMcpServer,
   updateMcpServer,
 } from "./api/chatSettingsClient";
 import { SettingsSection } from "./shared/SettingsSection";
-import type { McpProbeResult, McpServer, SettingsFetchStatus } from "./types";
+import type { McpInventory, McpProbeResult, McpServer, SettingsFetchStatus } from "./types";
 
 const FOCUS = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary";
 
@@ -48,8 +49,47 @@ function ProbeBadge(props: { result: McpProbeResult }) {
   );
 }
 
-function ServerRow(props: { server: McpServer; onChanged: () => void; onError: (message: string) => void }) {
-  const { server } = props;
+/**
+ * What this server is contributing right now, from the agent's own view of it.
+ *
+ * Without this the panel looked identical whether a server was serving forty tools or answering
+ * 401 on every call — the failure was only visible to someone who happened to press Test, and to
+ * the agent, which quietly ran with fewer tools and told nobody.
+ */
+function LiveState(props: { server: McpServer; inventory: McpInventory | null }) {
+  const { server, inventory } = props;
+  if (!server.enabled) {
+    return <span className="text-12 text-tertiary">Disabled</span>;
+  }
+  if (!inventory) {
+    return <span className="text-12 text-tertiary">Checking…</span>;
+  }
+
+  const failure = inventory.unavailable.find((entry) => entry.serverName === server.name);
+  if (failure) {
+    return (
+      <span className="text-danger flex items-center gap-1.5 text-12" title={failure.error}>
+        <TriangleAlert className="size-3.5 flex-shrink-0" strokeWidth={1.75} />
+        <span className="max-w-64 truncate">Not answering: {failure.error}</span>
+      </span>
+    );
+  }
+
+  const count = inventory.tools.filter((tool) => tool.serverName === server.name).length;
+  return (
+    <span className="text-12 text-secondary">
+      {count} tool{count === 1 ? "" : "s"} available
+    </span>
+  );
+}
+
+function ServerRow(props: {
+  server: McpServer;
+  inventory: McpInventory | null;
+  onChanged: () => void;
+  onError: (message: string) => void;
+}) {
+  const { server, inventory } = props;
   const [probe, setProbe] = useState<McpProbeResult | null>(null);
   const [busy, setBusy] = useState<"test" | "toggle" | "delete" | null>(null);
 
@@ -109,6 +149,7 @@ function ServerRow(props: { server: McpServer; onChanged: () => void; onError: (
           </button>
         </div>
       </div>
+      <LiveState server={server} inventory={inventory} />
       {probe && <ProbeBadge result={probe} />}
     </li>
   );
@@ -177,6 +218,7 @@ function AddServerForm(props: { onAdded: () => void; onError: (message: string) 
 export function McpPanel() {
   const [status, setStatus] = useState<SettingsFetchStatus>("loading");
   const [servers, setServers] = useState<readonly McpServer[]>([]);
+  const [inventory, setInventory] = useState<McpInventory | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -187,6 +229,17 @@ export function McpPanel() {
     let cancelled = false;
     setStatus("loading");
     setError(null);
+
+    // The inventory is a second, slower call — it actually reaches out to every server — so the
+    // list renders first and each row fills in its live state when the answer lands.
+    setInventory(null);
+    getMcpInventory()
+      .then((result) => {
+        if (!cancelled) setInventory(result);
+      })
+      .catch(() => {
+        if (!cancelled) setInventory({ tools: [], unavailable: [] });
+      });
 
     listMcpServers()
       .then((response) => {
@@ -249,7 +302,13 @@ export function McpPanel() {
       {servers.length > 0 && (
         <ul className="flex flex-col gap-2">
           {servers.map((server) => (
-            <ServerRow key={server.id} server={server} onChanged={reload} onError={setActionError} />
+            <ServerRow
+              key={server.id}
+              server={server}
+              inventory={inventory}
+              onChanged={reload}
+              onError={setActionError}
+            />
           ))}
         </ul>
       )}
