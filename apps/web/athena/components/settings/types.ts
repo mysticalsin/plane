@@ -81,6 +81,8 @@ export interface AgentListResponse {
 
 export interface CreateAgentInput {
   readonly name: string;
+  /** The running agent's 64-character Nostr public key — what a mention is addressed to. */
+  readonly pubkey: string;
   readonly model: string;
   readonly provider: ChatModelProvider;
 }

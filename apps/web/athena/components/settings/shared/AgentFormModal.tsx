@@ -10,13 +10,15 @@
 import { useState } from "react";
 import { Button, CustomSelect, Input, EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
 import { FOCUS_RING } from "../../../utils/focusRing";
+import { PROVIDER_LABELS } from "../providerLabels";
 import type { ChatModelProvider, CreateAgentInput } from "../types";
 
-const PROVIDER_OPTIONS: readonly { value: ChatModelProvider; label: string }[] = [
-  { value: "deepseek", label: "DeepSeek" },
-  { value: "moonshot", label: "Moonshot" },
-  { value: "anthropic", label: "Anthropic" },
-];
+const PROVIDER_OPTIONS: readonly { value: ChatModelProvider; label: string }[] = (
+  ["deepseek", "moonshot", "anthropic", "custom"] as const
+).map((value) => ({ value, label: PROVIDER_LABELS[value] }));
+
+/** A Nostr public key is 64 hex characters — checked here so a typo is caught before the save. */
+const PUBKEY_PATTERN = /^[0-9a-f]{64}$/i;
 
 interface AgentFormModalProps {
   readonly isOpen: boolean;
@@ -24,7 +26,7 @@ interface AgentFormModalProps {
   readonly onSubmit: (values: CreateAgentInput) => Promise<{ ok: boolean; error?: string }>;
 }
 
-const EMPTY_VALUES: CreateAgentInput = { name: "", model: "", provider: "deepseek" };
+const EMPTY_VALUES: CreateAgentInput = { name: "", pubkey: "", model: "", provider: "deepseek" };
 
 export function AgentFormModal(props: AgentFormModalProps) {
   const { isOpen, onClose, onSubmit } = props;
@@ -43,9 +45,18 @@ export function AgentFormModal(props: AgentFormModalProps) {
       setError("Name and model are both required.");
       return;
     }
+    if (!PUBKEY_PATTERN.test(values.pubkey.trim())) {
+      setError("The public key should be the 64-character key from the agent's startup line.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
-    const result = await onSubmit({ ...values, name: values.name.trim(), model: values.model.trim() });
+    const result = await onSubmit({
+      ...values,
+      name: values.name.trim(),
+      pubkey: values.pubkey.trim().toLowerCase(),
+      model: values.model.trim(),
+    });
     setSubmitting(false);
     if (result.ok) resetAndClose();
     else setError(result.error ?? "Something went wrong.");
@@ -57,7 +68,10 @@ export function AgentFormModal(props: AgentFormModalProps) {
     <ModalCore isOpen={isOpen} handleClose={resetAndClose} position={EModalPosition.CENTER} width={EModalWidth.LG}>
       <div className="flex flex-col gap-4 p-5">
         <h3 className="text-16 font-semibold text-primary">Register an agent</h3>
-        <p className="text-13 text-secondary">Registering an agent here is what makes it @mentionable in chat.</p>
+        <p className="text-13 text-secondary">
+          Registering an agent here is what makes it @mentionable in chat. It names an agent that is already running —
+          its public key is how a mention reaches it.
+        </p>
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="agent-name" className="text-13 font-medium text-primary">
@@ -71,6 +85,23 @@ export function AgentFormModal(props: AgentFormModalProps) {
             maxLength={80}
             className={FOCUS_RING}
           />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="agent-pubkey" className="text-13 font-medium text-primary">
+            Public key
+          </label>
+          <Input
+            id="agent-pubkey"
+            value={values.pubkey}
+            onChange={(e) => setValues((v) => ({ ...v, pubkey: e.target.value }))}
+            placeholder="64-character key from the agent's startup line"
+            maxLength={64}
+            className={`font-mono ${FOCUS_RING}`}
+          />
+          <span className="text-11 text-tertiary">
+            Printed by the agent runtime as <span className="font-mono">pubkey=…</span> when it starts.
+          </span>
         </div>
 
         <div className="flex flex-col gap-1.5">
