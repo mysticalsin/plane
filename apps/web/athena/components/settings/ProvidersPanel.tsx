@@ -200,6 +200,24 @@ export function ProvidersPanel() {
     );
   }
 
+  // A saved or removed key can change which provider is answering — the first key added becomes
+  // the active one — so the permission strip is re-read rather than left showing the old answer.
+  async function saveKeyAndRefresh(
+    provider: ChatModelProvider,
+    apiKey: string,
+    custom?: { baseUrl: string; model: string }
+  ) {
+    const result = await saveKey(provider, apiKey, custom);
+    if (result.ok) policy.retry();
+    return result;
+  }
+
+  async function removeKeyAndRefresh(provider: ChatModelProvider) {
+    const result = await removeKey(provider);
+    if (result.ok) policy.retry();
+    return result;
+  }
+
   const connectedProviders = providers.filter((p) => p.connected).map((p) => p.provider);
   // Until the policy is known, keys stay read-only: showing an editable field that the server
   // will refuse is worse than showing a disabled one for a moment.
@@ -255,8 +273,8 @@ export function ProvidersPanel() {
               canManage={canManage}
               isActive={policy.policy?.activeProvider === provider.provider}
               testResult={testResults.get(provider.provider)}
-              onSave={saveKey}
-              onRemove={removeKey}
+              onSave={saveKeyAndRefresh}
+              onRemove={removeKeyAndRefresh}
               onTest={testConnection}
             />
           ))}

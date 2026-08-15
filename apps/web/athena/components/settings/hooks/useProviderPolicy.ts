@@ -34,7 +34,9 @@ export function useProviderPolicy(): UseProviderPolicyResult {
 
   useEffect(() => {
     let cancelled = false;
-    setStatus("loading");
+    // Only the first load shows a skeleton. A refresh after a key was saved is replacing a value
+    // that is already on screen, and blanking the strip to re-draw it reads as a glitch.
+    setStatus((current) => (current === "ready" ? current : "loading"));
     setError(null);
     getProviderPolicy()
       .then((result) => {
@@ -52,6 +54,7 @@ export function useProviderPolicy(): UseProviderPolicyResult {
     };
   }, [attempt]);
 
+  /** Re-reads the policy. Also the hook's refresh: saving a key can change the active provider. */
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   const changePolicy = useCallback(async (next: ProviderPolicy["policy"]) => {
