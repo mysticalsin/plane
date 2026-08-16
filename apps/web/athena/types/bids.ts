@@ -44,6 +44,30 @@ export type BidPackage = {
   readonly createdAt: string;
 };
 
+/** One numbered change against a commitment, with the impact assessed when it was raised. */
+export type ChangeRequest = {
+  readonly id: string;
+  readonly number: number;
+  readonly title: string;
+  readonly description: string;
+  readonly scopeAssessment: "IN_SCOPE" | "OUT_OF_SCOPE";
+  readonly status: "DRAFT" | "APPROVED" | "REJECTED";
+  readonly lines: readonly { readonly role: string; readonly hoursDelta: number }[];
+  readonly impact: {
+    readonly hoursDelta: number;
+    readonly priceDelta: WireMoney;
+    readonly costDelta: WireMoney;
+    readonly marginPctBefore: number | null;
+    readonly marginPctAfter: number | null;
+  };
+  readonly requestedBy: string;
+  readonly requestedAt: string;
+  readonly decidedBy: string | null;
+  readonly decidedAt: string | null;
+  readonly decisionNote: string | null;
+  readonly resultingBaselineId: string | null;
+};
+
 /** What a won bid committed to, and how delivery is tracking against it. */
 export type BaselineResponse = {
   readonly baseline: {

@@ -18,6 +18,7 @@ import { Lock } from "lucide-react";
 import { Loader } from "@plane/ui";
 import { ChatApiError } from "../../api/http";
 import { getBaseline } from "../../api/bidsClient";
+import { ChangeRegister } from "./ChangeRegister";
 import { LocalTime } from "../LocalTime";
 import { formatMarginPct, formatMoney } from "./money";
 import type { BaselineResponse } from "../../types/bids";
@@ -123,6 +124,13 @@ export function BaselinePanel(props: { bidId: string }) {
         holds no time entries, and a burn-down built from a column nobody fills in would be the more impressive-looking
         lie.
       </p>
+
+      {/* The register lives with the commitment it amends: both appear only once a bid is won. */}
+      <ChangeRegister
+        bidId={bidId}
+        rateCardRoles={[...new Set(baseline.lines.map((line) => line.role))]}
+        onChanged={load}
+      />
     </section>
   );
 }

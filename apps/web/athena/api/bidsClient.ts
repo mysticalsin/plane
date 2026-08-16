@@ -9,6 +9,7 @@
 import type {
   BaselineResponse,
   BidListResponse,
+  ChangeRequest,
   BidPackage,
   EstimateListResponse,
   EstimateVersion,
@@ -94,4 +95,37 @@ export function addEstimate(bidId: string, input: CreateEstimateInput): Promise<
 /** 404 before the bid is won — there is no baseline until then, and the caller renders nothing. */
 export function getBaseline(bidId: string): Promise<BaselineResponse> {
   return athenaFetch<BaselineResponse>(`/bids/${bidId}/baseline`);
+}
+
+export function listChangeRequests(bidId: string): Promise<{ changeRequests: readonly ChangeRequest[] }> {
+  return athenaFetch(`/bids/${bidId}/change-requests`);
+}
+
+export interface CreateChangeInput {
+  readonly title: string;
+  readonly description: string;
+  readonly scopeAssessment: "IN_SCOPE" | "OUT_OF_SCOPE";
+  readonly priceDelta: WireMoney;
+  readonly lines: readonly { readonly role: string; readonly hoursDelta: number }[];
+}
+
+/** The server assesses it against the current baseline and stores what it assessed. */
+export function createChangeRequest(bidId: string, input: CreateChangeInput): Promise<ChangeRequest> {
+  return athenaFetch<ChangeRequest>(`/bids/${bidId}/change-requests`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+/** Approving freezes the next baseline version; 409 when the commitment moved since it was assessed. */
+export function decideChangeRequest(
+  bidId: string,
+  changeRequestId: string,
+  decision: "APPROVED" | "REJECTED",
+  note: string | null
+): Promise<ChangeRequest> {
+  return athenaFetch<ChangeRequest>(`/bids/${bidId}/change-requests/${changeRequestId}/decide`, {
+    method: "POST",
+    body: JSON.stringify({ decision, note }),
+  });
 }
